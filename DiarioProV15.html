@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="antialiased dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Diário Pro | Elite Analytics v28.5</title>
+    
+    <!-- Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gema: { light: '#FFE066', DEFAULT: '#FFCC00', dark: '#F5B800' },
+                        present: '#10b981',
+                        absent: '#ef4444',
+                        justified: '#3b82f6',
+                        darkCard: '#1e293b',
+                        slate: {
+                            50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 800: '#1e293b', 900: '#0f172a', 950: '#020617',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { scroll-behavior: smooth; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; font-size: 0.82rem; transition: background 0.3s; overflow-x: hidden; }
+        
+        /* CORREÇÃO MODO COMPACTO ELITE */
+        body.compact-mode { font-size: 0.72rem !important; }
+        body.compact-mode .card-premium { padding: 0.6rem !important; }
+        body.compact-mode .chart-container { height: 220px !important; min-height: 220px; }
+        body.compact-mode .grid { gap: 0.5rem !important; }
+        body.compact-mode h1 { font-size: 1rem !important; }
+        body.compact-mode .text-3xl { font-size: 1.5rem !important; line-height: 1; }
+        body.compact-mode .py-6 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+        body.compact-mode .px-6 { padding-left: 0.75rem !important; padding-right: 0.75rem !important; }
+        body.compact-mode .py-4 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+        body.compact-mode .mb-6 { margin-bottom: 0.75rem !important; }
+        body.compact-mode .gap-6 { gap: 0.75rem !important; }
+        body.compact-mode canvas { max-width: 100% !important; }
+
+        .glass { background: rgba(248, 250, 252, 0.98); backdrop-filter: blur(12px); }
+        .dark .glass { background: rgba(15, 23, 42, 0.98); }
+        
+        .card-premium { background: white; border: 1px solid #e2e8f0; border-radius: 1rem; transition: all 0.2s ease; position: relative; overflow: hidden; }
+        .dark .card-premium { background: #1e293b; border: 1px solid #334155; }
+        
+        .btn-premium { background: linear-gradient(135deg, #FFCC00 0%, #F5B800 100%); color: #020617; font-weight: 800; border-radius: 0.75rem; transition: all 0.2s; cursor: pointer; border: none; }
+        .btn-premium:hover { filter: brightness(1.05); transform: translateY(-1px); }
+        .btn-premium:active { transform: scale(0.96); }
+
+        .tab-active { color: #FFCC00 !important; border-bottom: 3px solid #FFCC00; background: rgba(255, 204, 0, 0.08); font-weight: 800; }
+        
+        @keyframes spin-custom { to { transform: rotate(360deg); } }
+        .custom-spin { animation: spin-custom 0.8s linear infinite; }
+
+        .custom-scroll::-webkit-scrollbar { height: 4px; width: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .dark .custom-scroll::-webkit-scrollbar-thumb { background: #475569; }
+
+        .bg-grad-gema { background: linear-gradient(135deg, #FFCC00 0%, #F5B800 100%); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade { animation: fadeIn 0.3s ease-out forwards; }
+
+        .save-indicator { transition: opacity 0.5s; opacity: 0; }
+        .save-active { opacity: 1; }
+        
+        @media print { .no-print { display: none !important; } tr { page-break-inside: avoid; } }
+
+        /* Custom Toast */
+        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .toast { pointer-events: auto; padding: 12px 20px; border-radius: 12px; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; display: flex; items-center: center; gap: 10px; animation: slideIn 0.3s ease-out forwards; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col pb-20 md:pb-0">
+
+    <div id="toast-container"></div>
+
+    <!-- Preloader -->
+    <div id="loading-overlay" class="fixed inset-0 bg-slate-100 dark:bg-slate-950 flex items-center justify-center z-[1000] transition-all duration-700 ease-in-out">
+        <div class="flex flex-col items-center">
+            <div class="w-12 h-12 border-4 border-gema/10 border-t-gema rounded-full custom-spin mb-4 shadow-[0_0_15px_rgba(255,204,0,0.3)]"></div>
+            <p class="text-[10px] font-black uppercase tracking-[0.3em] text-gema animate-pulse">Elite Engine v28.5</p>
+            <p class="text-[8px] font-bold uppercase tracking-widest text-slate-400 mt-2">Otimizando Dashboard...</p>
+        </div>
+    </div>
+
+    <!-- Auth Screen -->
+    <div id="auth-screen" class="hidden fixed inset-0 z-[200] bg-slate-100 dark:bg-slate-950 flex items-center justify-center p-4">
+        <div class="w-full max-w-[360px] card-premium p-10 shadow-2xl animate-fade border-2 border-slate-200 dark:border-white/5">
+            <div class="text-center mb-8">
+                <div class="inline-flex bg-grad-gema p-5 rounded-2xl text-slate-950 shadow-lg mb-4">
+                    <i class="fas fa-shield-halved fa-2x"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-950 dark:text-white uppercase tracking-tighter">Login Pro</h2>
+                <p class="text-[9px] font-bold text-slate-500 uppercase mt-1 tracking-widest">Acesso Restrito</p>
+            </div>
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="text-[9px] font-black uppercase text-slate-500 ml-1">Utilizador</label>
+                    <input type="text" id="login-user" required class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-xl font-bold" placeholder="admin">
+                </div>
+                <div>
+                    <label class="text-[9px] font-black uppercase text-slate-500 ml-1">Senha</label>
+                    <input type="password" id="login-pass" required class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-xl font-bold" placeholder="1234">
+                </div>
+                <button type="submit" class="btn-premium w-full py-4 text-xs uppercase tracking-widest shadow-xl mt-4">Entrar no Sistema</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- App Content -->
+    <div id="app-content" class="hidden flex flex-col min-h-screen">
+        
+        <!-- Navbar -->
+        <nav class="sticky top-0 z-50 glass border-b border-slate-200 dark:border-slate-800 no-print">
+            <div class="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div class="bg-grad-gema w-8 h-8 rounded-xl flex items-center justify-center text-slate-950 shadow-md">
+                        <i class="fas fa-scroll text-sm"></i>
+                    </div>
+                    <span class="text-lg font-black tracking-tighter text-slate-950 dark:text-white uppercase">
+                        DIÁRIO<span class="text-gema">PRO</span>
+                    </span>
+                    <div id="save-status" class="save-indicator flex items-center gap-1.5 ml-2" title="Guardado automaticamente">
+                        <div class="w-1.5 h-1.5 rounded-full bg-present animate-pulse"></div>
+                        <span class="text-[7px] font-black uppercase tracking-widest text-slate-400">Syncing...</span>
+                    </div>
+                </div>
+                
+                <div class="hidden md:flex h-full items-center gap-1">
+                    <button onclick="switchTab('dashboard')" id="tab-dashboard" class="px-5 h-full text-[10px] font-black uppercase tracking-widest transition-all">Geral</button>
+                    <button onclick="switchTab('attendance')" id="tab-attendance" class="px-5 h-full text-[10px] font-bold uppercase tracking-widest text-slate-500 transition-all">Chamada</button>
+                    <button onclick="switchTab('grades')" id="tab-grades" class="px-5 h-full text-[10px] font-bold uppercase tracking-widest text-slate-500 transition-all">Notas</button>
+                    <button onclick="switchTab('students')" id="tab-students" class="px-5 h-full text-[10px] font-bold uppercase tracking-widest text-slate-500 transition-all">Alunos</button>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button onclick="toggleCompactMode()" class="w-9 h-9 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-gema" title="Alternar modo visual">
+                        <i id="compact-icon" class="fas fa-compress text-xs"></i>
+                    </button>
+                    <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-gema">
+                        <i id="theme-icon" class="fas fa-moon text-xs"></i>
+                    </button>
+                    <div class="relative">
+                        <button onclick="toggleSettingsMenu()" class="w-9 h-9 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-gema">
+                            <i class="fas fa-cog text-xs"></i>
+                        </button>
+                        <div id="settings-dropdown" class="hidden absolute top-12 right-0 w-64 bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl py-2 z-50 animate-fade text-[11px] font-bold">
+                            <button onclick="openSettingsModal('school')" class="w-full text-left px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-900 flex items-center gap-3">
+                                <i class="fas fa-building text-gema w-4"></i> Instituição
+                            </button>
+                            <button onclick="openSettingsModal('curriculum')" class="w-full text-left px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-900 flex items-center gap-3">
+                                <i class="fas fa-layer-group text-gema w-4"></i> Matriz Curricular
+                            </button>
+                            <button onclick="openSettingsModal('profile')" class="w-full text-left px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-900 flex items-center gap-3">
+                                <i class="fas fa-user-edit text-gema w-4"></i> Perfil Docente
+                            </button>
+                            <div class="h-px bg-slate-100 dark:bg-slate-800 my-1 mx-4"></div>
+                            <button onclick="handleBackupData()" class="w-full text-left px-5 py-3 text-blue-500 uppercase text-[9px]">
+                                <i class="fas fa-download mr-2"></i> Exportar Dados JSON
+                            </button>
+                            <button onclick="handleLogout()" class="w-full text-left px-5 py-3 text-red-500 uppercase text-[10px] font-black">
+                                <i class="fas fa-power-off mr-2"></i> Encerrar Sessão
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="flex-grow max-w-7xl mx-auto px-4 py-6 w-full space-y-4 animate-fade">
+            
+            <!-- Context Header -->
+            <div class="card-premium p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
+                <div class="flex items-center gap-4 w-full">
+                    <div class="w-12 h-12 rounded-2xl bg-gema/10 text-gema flex items-center justify-center text-xl shadow-inner">
+                        <i class="fas fa-folder-tree"></i>
+                    </div>
+                    <div class="overflow-hidden">
+                        <div class="flex items-center gap-2">
+                            <h1 id="active-class-title" class="text-lg font-black text-slate-950 dark:text-white uppercase tracking-tighter truncate">Sincronizando...</h1>
+                            <button onclick="openModal('modal-manage-classes')" class="text-slate-400 hover:text-gema" title="Mudar Turma">
+                                <i class="fas fa-exchange-alt text-xs"></i>
+                            </button>
+                        </div>
+                        <p id="school-name-display" class="text-[9px] font-bold text-slate-500 uppercase tracking-widest truncate"></p>
+                    </div>
+                </div>
+                <div id="header-actions" class="flex gap-2"></div>
+            </div>
+
+            <!-- Tab Content -->
+            <div id="tab-content" class="w-full">
+                
+                <!-- View: Dashboard -->
+                <section id="view-dashboard" class="space-y-4 animate-fade">
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="card-premium p-5 border-l-4 border-gema shadow-sm flex justify-between items-center">
+                            <div>
+                                <span class="text-[9px] font-black text-slate-500 uppercase block mb-1">Total Alunos</span>
+                                <p id="dash-total-students" class="text-3xl font-black text-slate-950 dark:text-white">0</p>
+                            </div>
+                            <div class="w-12 h-12 shrink-0"><canvas id="dash-chart-total"></canvas></div>
+                        </div>
+                        <div class="card-premium p-5 border-l-4 border-present shadow-sm flex justify-between items-center">
+                            <div>
+                                <span class="text-[9px] font-black text-slate-500 uppercase block mb-1">Aprovados</span>
+                                <p id="dash-approved" class="text-3xl font-black text-present">0</p>
+                            </div>
+                            <div class="w-12 h-12 shrink-0"><canvas id="dash-chart-app"></canvas></div>
+                        </div>
+                        <div class="card-premium p-5 border-l-4 border-amber-500 shadow-sm flex justify-between items-center">
+                            <div>
+                                <span class="text-[9px] font-black text-slate-500 uppercase block mb-1">Atenção</span>
+                                <p id="dash-warning" class="text-3xl font-black text-amber-500">0</p>
+                            </div>
+                            <div class="w-12 h-12 shrink-0"><canvas id="dash-chart-warn"></canvas></div>
+                        </div>
+                        <div class="card-premium p-5 border-l-4 border-absent shadow-sm flex justify-between items-center">
+                            <div>
+                                <span class="text-[9px] font-black text-slate-500 uppercase block mb-1">Retidos</span>
+                                <p id="dash-failed" class="text-3xl font-black text-absent">0</p>
+                            </div>
+                            <div class="w-12 h-12 shrink-0"><canvas id="dash-chart-fail"></canvas></div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="card-premium p-6 h-[400px] flex flex-col chart-container">
+                            <h3 class="text-[10px] font-black uppercase text-slate-500 mb-6 tracking-widest flex items-center gap-2">
+                                <i class="fas fa-chart-column text-gema"></i> Rendimento por Matéria
+                            </h3>
+                            <div class="flex-grow relative overflow-hidden"><canvas id="chart-performance"></canvas></div>
+                        </div>
+                        <div class="card-premium p-6 h-[400px] flex flex-col chart-container">
+                            <h3 class="text-[10px] font-black uppercase text-slate-500 mb-6 tracking-widest flex items-center gap-2">
+                                <i class="fas fa-chart-pie text-present"></i> Status Académico
+                            </h3>
+                            <div class="flex-grow relative overflow-hidden"><canvas id="chart-status"></canvas></div>
+                        </div>
+                        <div class="card-premium p-6 h-[400px] flex flex-col chart-container">
+                            <h3 class="text-[10px] font-black uppercase text-slate-500 mb-6 tracking-widest flex items-center gap-2">
+                                <i class="fas fa-chart-line text-justified"></i> Engajamento (Frequência)
+                            </h3>
+                            <div class="flex-grow relative max-h-[160px] mb-4"><canvas id="chart-engagement"></canvas></div>
+                            <div id="engage-stats-panel" class="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                                <div class="flex justify-between items-center text-[10px] font-black uppercase">
+                                    <span class="text-present">Presenças</span>
+                                    <span id="stat-p-val" class="text-slate-900 dark:text-white">0 (0%)</span>
+                                </div>
+                                <div class="flex justify-between items-center text-[10px] font-black uppercase">
+                                    <span class="text-absent">Faltas</span>
+                                    <span id="stat-f-val" class="text-slate-900 dark:text-white">0 (0%)</span>
+                                </div>
+                                <div class="flex justify-between items-center text-[10px] font-black uppercase">
+                                    <span class="text-justified">Justificadas</span>
+                                    <span id="stat-j-val" class="text-slate-900 dark:text-white">0 (0%)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- View: Attendance -->
+                <section id="view-attendance" class="hidden space-y-4 animate-fade">
+                    <div class="card-premium overflow-hidden shadow-sm">
+                        <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex flex-col md:flex-row gap-4 items-center justify-between">
+                            <div class="flex items-center gap-3 w-full md:w-auto">
+                                <label class="text-[10px] font-black uppercase text-slate-500">Data:</label>
+                                <input type="date" id="attendance-date" class="bg-white dark:bg-slate-800 border dark:border-slate-700 px-3 py-2 rounded-xl font-bold text-xs" onchange="renderAttendance()">
+                                <button onclick="handleExportDailyAttendancePdf()" class="bg-slate-900 dark:bg-white text-white dark:text-slate-950 px-4 py-2 rounded-xl text-[10px] font-black uppercase shadow-lg">
+                                    <i class="fas fa-file-pdf mr-2"></i>PDF Chamada
+                                </button>
+                            </div>
+                            <div class="flex gap-2 w-full md:w-auto">
+                                <button onclick="markAllAttendance('P')" class="flex-1 md:px-6 btn-premium py-3 text-[10px] uppercase shadow-md">Presença Geral</button>
+                                <button onclick="markAllAttendance('')" class="flex-1 md:px-6 bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl py-3 text-[10px] font-black uppercase">Limpar</button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto custom-scroll">
+                            <table class="w-full">
+                                <thead class="bg-slate-100 dark:bg-slate-900/50 text-[9px] font-black uppercase text-slate-500 border-b dark:border-slate-800">
+                                    <tr>
+                                        <th class="px-6 py-4 text-center w-20">Nº</th>
+                                        <th class="px-6 py-4 text-left">Académico</th>
+                                        <th class="px-6 py-4 text-center w-64">Status Presença</th>
+                                        <th class="px-6 py-4 text-right w-32">Frequência</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="att-table-body" class="divide-y divide-slate-100 dark:divide-slate-800 font-bold text-[11px]"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- View: Grades -->
+                <section id="view-grades" class="hidden space-y-4 animate-fade">
+                    <div class="card-premium overflow-hidden shadow-sm">
+                        <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <select id="select-discipline" onchange="renderGrades()" class="w-full bg-white dark:bg-slate-800 border dark:border-slate-700 p-3 rounded-xl font-bold text-xs" title="Selecionar disciplina"></select>
+                            <select id="select-period" onchange="renderGrades()" class="w-full bg-white dark:bg-slate-800 border dark:border-slate-700 p-3 rounded-xl font-bold text-xs">
+                                <option value="1">1º Bimestre</option>
+                                <option value="2">2º Bimestre</option>
+                                <option value="3">3º Bimestre</option>
+                                <option value="4">4º Bimestre</option>
+                                <option value="consolidated" class="text-gema font-black">RESULTADO FINAL (Anual)</option>
+                            </select>
+                        </div>
+                        <div class="overflow-x-auto custom-scroll">
+                            <table class="w-full">
+                                <thead id="grades-table-head" class="bg-slate-100 dark:bg-slate-900/50 text-[9px] font-black uppercase text-slate-500 border-b dark:border-slate-800"></thead>
+                                <tbody id="grades-table-body" class="divide-y divide-slate-100 dark:divide-slate-800 font-bold text-[11px]"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- View: Students -->
+                <section id="view-students" class="hidden space-y-4 animate-fade">
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                        <div class="lg:col-span-3">
+                            <div class="card-premium overflow-hidden flex flex-col min-h-[500px] shadow-sm">
+                                <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex flex-col md:flex-row gap-4 items-center justify-between">
+                                    <div class="flex gap-2 w-full md:w-auto">
+                                        <input type="text" id="search-students-list" oninput="renderStudentsTab()" placeholder="Filtrar por nome..." class="flex-grow bg-white dark:bg-slate-800 border dark:border-slate-700 px-4 py-2.5 rounded-xl font-bold text-xs">
+                                        <button id="btn-bulk-delete" onclick="handleBulkDelete()" class="hidden bg-red-600 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase shadow-lg">
+                                            <i class="fas fa-trash-can mr-2"></i>Eliminar Seleção
+                                        </button>
+                                    </div>
+                                    <button onclick="handleExportStudentListPdf()" class="btn-premium px-6 py-2.5 text-[10px] uppercase shadow-md">
+                                        <i class="fas fa-file-signature mr-2"></i>Lista de Assinatura
+                                    </button>
+                                </div>
+                                <div class="overflow-x-auto flex-grow custom-scroll">
+                                    <table class="w-full">
+                                        <thead class="bg-slate-100 dark:bg-slate-900/50 text-[9px] font-black uppercase text-slate-500 border-b dark:border-slate-800">
+                                            <tr>
+                                                <th class="px-6 py-4 text-center w-16"><input type="checkbox" id="select-all-students" onchange="toggleSelectAll(this)"></th>
+                                                <th class="px-6 py-4 text-left">Académico / Registro</th>
+                                                <th class="px-6 py-4 text-right w-48">Ações Analíticas</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="students-table-body" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="card-premium p-6 shadow-sm">
+                                <h3 class="text-[11px] font-black mb-6 uppercase tracking-widest text-slate-500">Gestão</h3>
+                                <div class="flex flex-col gap-3">
+                                    <button onclick="handleAddStudent()" class="btn-premium w-full py-4 text-[10px] uppercase tracking-widest shadow-lg">
+                                        <i class="fas fa-user-plus mr-2"></i>Novo Académico
+                                    </button>
+                                    <div class="h-px bg-slate-100 dark:bg-slate-800 my-2"></div>
+                                    <button onclick="handleBulkImportPrompt()" class="w-full py-4 bg-slate-50 dark:bg-slate-900 border dark:border-slate-700 rounded-xl text-[10px] font-black uppercase hover:border-gema transition-all">
+                                        <i class="fas fa-paste mr-2"></i>Colar Texto
+                                    </button>
+                                    <button onclick="getEl('csv-file-input').click()" class="w-full py-4 bg-slate-50 dark:bg-slate-900 border dark:border-slate-700 rounded-xl text-[10px] font-black uppercase hover:border-gema transition-all">
+                                        <i class="fas fa-file-csv mr-2"></i>Subir CSV
+                                    </button>
+                                    <input type="file" id="csv-file-input" accept=".csv" class="hidden" onchange="handleCsvImport(this)">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation Mobile -->
+        <div class="fixed bottom-0 left-0 right-0 glass border-t border-slate-200 dark:border-slate-800 z-[100] md:hidden no-print">
+            <div class="flex h-16 items-center">
+                <button onclick="switchTab('dashboard')" class="flex-1 flex flex-col items-center gap-1" id="mob-dashboard-btn"><i class="fas fa-house text-sm"></i><span class="text-[8px] font-black uppercase">Geral</span></button>
+                <button onclick="switchTab('attendance')" class="flex-1 flex flex-col items-center gap-1 text-slate-500" id="mob-attendance-btn"><i class="fas fa-calendar-check text-sm"></i><span class="text-[8px] font-black uppercase">Chamada</span></button>
+                <button onclick="switchTab('grades')" class="flex-1 flex flex-col items-center gap-1 text-slate-500" id="mob-grades-btn"><i class="fas fa-award text-sm"></i><span class="text-[8px] font-black uppercase">Notas</span></button>
+                <button onclick="switchTab('students')" class="flex-1 flex flex-col items-center gap-1 text-slate-500" id="mob-students-btn"><i class="fas fa-user-group text-sm"></i><span class="text-[8px] font-black uppercase">Alunos</span></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+
+    <!-- Modal Input/Action -->
+    <div id="modal-input-action" class="hidden fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+        <div class="bg-white dark:bg-darkCard w-full max-w-[340px] rounded-[2.5rem] shadow-2xl animate-fade p-8 text-center space-y-6">
+            <div id="action-icon-container" class="inline-flex w-16 h-16 rounded-3xl items-center justify-center bg-grad-gema text-slate-950 shadow-lg mx-auto">
+                <i id="action-icon" class="fas fa-question text-xl"></i>
+            </div>
+            <div>
+                <h3 id="action-title" class="text-xl font-black text-slate-950 dark:text-white uppercase tracking-tighter">Confirmar</h3>
+                <p id="action-desc" class="text-[11px] font-bold text-slate-500 uppercase leading-tight mt-2"></p>
+            </div>
+            <div id="action-input-container" class="hidden">
+                <input type="text" id="action-input-field" class="w-full bg-slate-50 dark:bg-slate-900 border-none p-4 rounded-2xl font-bold text-sm text-center focus:ring-2 focus:ring-gema text-slate-950 dark:text-white">
+            </div>
+            <div class="flex gap-3">
+                <button onclick="closeModal('modal-input-action')" class="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-2xl text-[10px] font-black uppercase tracking-widest">Cancelar</button>
+                <button id="btn-action-confirm" class="flex-1 py-4 btn-premium rounded-2xl text-[10px] font-black uppercase shadow-lg">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Turmas Modal -->
+    <div id="modal-manage-classes" class="hidden fixed inset-0 z-[900] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm">
+        <div class="bg-white dark:bg-darkCard w-full max-w-[380px] rounded-[2rem] shadow-2xl overflow-hidden animate-fade">
+            <div class="p-8 bg-grad-gema text-slate-950">
+                <div class="flex justify-between items-center mb-6"><h3 class="text-sm font-black uppercase tracking-widest">Matriz de Turmas</h3><button onclick="closeModal('modal-manage-classes')"><i class="fas fa-times"></i></button></div>
+                <div class="flex gap-2">
+                    <input type="text" id="new-class-input" placeholder="Nova Turma..." class="flex-grow bg-white/40 border-none px-4 py-3.5 rounded-xl font-bold text-[11px] outline-none placeholder:text-black/30">
+                    <button onclick="handleAddClass()" class="bg-slate-950 text-white px-5 rounded-xl font-black text-[10px] uppercase shadow-lg">Criar</button>
+                </div>
+            </div>
+            <div id="class-list-container" class="p-6 space-y-3 max-h-80 overflow-y-auto custom-scroll"></div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="modal-settings" class="hidden fixed inset-0 z-[900] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm">
+        <div class="bg-white dark:bg-darkCard w-full max-w-[500px] rounded-[2rem] shadow-2xl overflow-hidden animate-fade">
+            <div class="p-6 border-b flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50">
+                <h3 class="text-xs font-black uppercase tracking-widest text-slate-500">Configurações Elite</h3>
+                <button onclick="closeModal('modal-settings')" class="text-slate-400"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scroll">
+                <!-- Section: School -->
+                <div id="set-section-school" class="space-y-4">
+                    <h4 class="text-[10px] font-black text-gema uppercase">Dados da Instituição</h4>
+                    <div>
+                        <label class="text-[9px] font-black uppercase text-slate-400 block mb-1">Nome da Escola</label>
+                        <input type="text" id="set-school-name" class="w-full bg-slate-50 dark:bg-slate-900 border dark:border-slate-800 p-3 rounded-xl font-bold text-xs">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[9px] font-black uppercase text-slate-400 block mb-1">Média Aprovação</label>
+                            <input type="number" id="set-media-pass" step="0.1" class="w-full bg-slate-50 dark:bg-slate-900 border dark:border-slate-800 p-3 rounded-xl font-bold text-xs">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-black uppercase text-slate-400 block mb-1">Total Aulas</label>
+                            <input type="number" id="set-total-lessons" class="w-full bg-slate-50 dark:bg-slate-900 border dark:border-slate-800 p-3 rounded-xl font-bold text-xs">
+                        </div>
+                    </div>
+                    <button onclick="saveGlobalSettings()" class="btn-premium w-full py-3 text-[10px] uppercase">Salvar Dados</button>
+                </div>
+
+                <!-- Section: Curriculum -->
+                <div id="set-section-curriculum" class="hidden space-y-4">
+                    <h4 class="text-[10px] font-black text-gema uppercase">Disciplinas Ativas</h4>
+                    <div id="set-disc-tags" class="flex flex-wrap gap-2"></div>
+                    <div class="flex gap-2">
+                        <input type="text" id="new-disc-name" placeholder="Nome da Disciplina..." class="flex-grow bg-slate-50 dark:bg-slate-900 border dark:border-slate-800 p-3 rounded-xl font-bold text-xs">
+                        <button onclick="addDisciplineToList()" class="bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-4 rounded-xl font-black text-[10px] uppercase">Add</button>
+                    </div>
+                </div>
+
+                <!-- Section: Profile -->
+                <div id="set-section-profile" class="hidden space-y-4">
+                    <h4 class="text-[10px] font-black text-gema uppercase">Perfil do Docente</h4>
+                    <div>
+                        <label class="text-[9px] font-black uppercase text-slate-400 block mb-1">Nome Completo</label>
+                        <input type="text" id="set-prof-name" class="w-full bg-slate-50 dark:bg-slate-900 border dark:border-slate-800 p-3 rounded-xl font-bold text-xs">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black uppercase text-slate-400 block mb-1">Alterar Utilizador</label>
+                        <input type="text" id="set-login-user" class="w-full bg-slate-50 dark:bg-slate-900 border dark:border-slate-800 p-3 rounded-xl font-bold text-xs" placeholder="Novo usuário login">
+                    </div>
+                    <button onclick="saveProfileSettings()" class="btn-premium w-full py-3 text-[10px] uppercase">Atualizar Perfil</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Boletim Modal -->
+    <div id="modal-boletim" class="hidden fixed inset-0 z-[1000] flex items-center justify-center p-2 bg-slate-950/90 backdrop-blur-md">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-5xl max-h-[96vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden animate-fade">
+            <div class="p-5 border-b flex justify-between items-center no-print bg-slate-50/80 dark:bg-slate-800/80">
+                <h3 class="text-[11px] font-black uppercase text-slate-500">Preview Elite Insight</h3>
+                <div class="flex gap-2">
+                    <button id="btn-export-pdf" class="btn-premium px-6 py-2.5 rounded-xl text-[10px] font-black shadow-lg"><i class="fas fa-file-pdf mr-2"></i>Gerar PDF</button>
+                    <button onclick="closeModal('modal-boletim')" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-red-500 transition-colors"><i class="fas fa-times text-xs"></i></button>
+                </div>
+            </div>
+            <div id="boletim-view" class="overflow-y-auto p-6 md:p-14 space-y-12 flex-grow bg-white dark:bg-slate-950 custom-scroll text-slate-950 dark:text-white"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- v28.5 ELITE CORE ---
+        const getEl = (id) => document.getElementById(id);
+        const setHtml = (id, html) => { const el = getEl(id); if(el) el.innerHTML = html; };
+        const setVal = (id, val) => { const el = getEl(id); if(el) el.value = val; };
+
+        let state = JSON.parse(localStorage.getItem('diario_v28_core')) || { 
+            classes: [], professor: "Docente Elite Force", 
+            config: { theme: 'dark', compact: false } 
+        };
+        
+        let activeClassId = localStorage.getItem('diario_v28_active_id') || null;
+        let charts = { perf: null, status: null, engagement: null, radar: null, miniFreq: null, miniStatus: null, d1:null, d2:null, d3:null, d4:null };
+        let selectedStudents = [];
+
+        const getCredentials = () => JSON.parse(localStorage.getItem('diario_v28_creds')) || { user: 'admin', pass: '1234' };
+
+        // Toast System
+        window.showToast = (msg, type = 'success') => {
+            const container = getEl('toast-container');
+            const toast = document.createElement('div');
+            const colors = { success: 'bg-present text-white', error: 'bg-absent text-white', info: 'bg-justified text-white' };
+            const icons = { success: 'fa-check-circle', error: 'fa-exclamation-triangle', info: 'fa-info-circle' };
+            toast.className = `toast ${colors[type] || colors.success}`;
+            toast.innerHTML = `<i class="fas ${icons[type] || icons.success}"></i> <span>${msg}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+        };
+
+        // Calculations
+        const calculateFreq = (s, cls) => {
+            let totalDays = Object.keys(cls.attendance).length;
+            if (totalDays === 0) return 100;
+            let presentCount = 0;
+            Object.values(cls.attendance).forEach(day => {
+                const status = day[s.id];
+                if (status === 'P' || status === 'J') presentCount++;
+            });
+            return Math.round((presentCount / totalDays) * 100);
+        };
+
+        const calculatePeriodAvg = (s, d, p, cls) => {
+            if (!s.grades || !s.grades[d] || !s.grades[d][p]) return 0;
+            const evals = Object.values(s.grades[d][p]).map(v => parseFloat(v) || 0);
+            return evals.length === 0 ? 0 : evals.reduce((a, b) => a + b, 0) / evals.length;
+        };
+
+        const calculateFinalAvg = (s, d, cls) => {
+            const avgs = [1,2,3,4].map(p => calculatePeriodAvg(s, d, p, cls));
+            return avgs.reduce((a,b) => a+b, 0) / 4;
+        };
+
+        const calculateStudentSummary = (s, cls) => {
+            const discAvgs = cls.settings.disciplines.map(d => calculateFinalAvg(s, d, cls));
+            const finalAvg = discAvgs.length ? (discAvgs.reduce((a,b)=>a+b, 0) / discAvgs.length) : 0;
+            let status = "APROVADO";
+            if (finalAvg < cls.settings.mediaPass - 1.5) status = "RETIDO";
+            else if (finalAvg < cls.settings.mediaPass) status = "RECUPERAÇÃO";
+            if (calculateFreq(s, cls) < 75) status = "RETIDO (FALTAS)";
+            return { finalAvg, freq: calculateFreq(s, cls), status, discAvgs };
+        };
+
+        // Auth Logic
+        getEl('login-form').onsubmit = (e) => {
+            e.preventDefault();
+            const creds = getCredentials();
+            if (getEl('login-user').value === creds.user && getEl('login-pass').value === creds.pass) {
+                localStorage.setItem('diario_v28_auth', 'true');
+                checkAuthAndRoute();
+            } else window.showToast("Credenciais Inválidas", "error");
+        };
+
+        window.startEliteEngine = () => {
+            setTimeout(() => {
+                getEl('loading-overlay').classList.add('opacity-0', 'scale-110');
+                setTimeout(() => { 
+                    getEl('loading-overlay').classList.add('hidden'); 
+                    if(state.config.compact) {
+                        document.body.classList.add('compact-mode');
+                        getEl('compact-icon').className = 'fas fa-expand text-xs';
+                    }
+                    checkAuthAndRoute(); 
+                }, 700);
+            }, 1000);
+        };
+
+        window.checkAuthAndRoute = () => {
+            const isAuth = localStorage.getItem('diario_v28_auth') === 'true';
+            if (!isAuth) { getEl('auth-screen').classList.remove('hidden'); getEl('app-content').classList.add('hidden'); }
+            else { getEl('auth-screen').classList.add('hidden'); getEl('app-content').classList.remove('hidden'); initAppData(); }
+        };
+
+        window.initAppData = () => {
+            if (state.classes.length === 0) {
+                const id = 'c' + Date.now();
+                state.classes.push({
+                    id, name: "Turma Alpha 2024", students: [], attendance: {},
+                    settings: { schoolName: "Colégio Elite Internacional", mediaPass: 6.0, totalLessons: 80, disciplines: ["Matemática", "Português", "História", "Ciências"], evalTypes: [{name: "Média", weight: 10}] }
+                });
+                activeClassId = id;
+            } else if (!activeClassId) activeClassId = state.classes[0].id;
+            getEl('attendance-date').valueAsDate = new Date();
+            updateUI();
+        };
+
+        window.switchTab = (tab) => {
+            ['dashboard', 'attendance', 'grades', 'students'].forEach(v => {
+                const btn = getEl(`tab-${v}`), view = getEl(`view-${v}`);
+                if (btn) btn.className = v === tab ? "px-5 h-full text-[10px] font-black uppercase tracking-widest tab-active" : "px-5 h-full text-[10px] font-bold uppercase tracking-widest text-slate-500";
+                if (view) view.classList.toggle('hidden', v !== tab);
+            });
+            updateUI();
+        };
+
+        window.updateUI = () => {
+            const cls = state.classes.find(c => c.id === activeClassId);
+            if (!cls) return;
+            setHtml('active-class-title', cls.name); 
+            setHtml('school-name-display', cls.settings.schoolName);
+            const currentTab = document.querySelector('.tab-active')?.id.replace('tab-', '') || 'dashboard';
+            if (currentTab === 'dashboard') renderDashboard();
+            if (currentTab === 'attendance') renderAttendance();
+            if (currentTab === 'grades') renderGrades();
+            if (currentTab === 'students') renderStudentsTab();
+            
+            getEl('save-status').classList.add('save-active');
+            setTimeout(() => getEl('save-status').classList.remove('save-active'), 1500);
+
+            localStorage.setItem('diario_v28_core', JSON.stringify(state));
+            localStorage.setItem('diario_v28_active_id', activeClassId);
+        };
+
+        const renderDashboard = () => {
+            const cls = state.classes.find(c => c.id === activeClassId);
+            let app = 0, warn = 0, fail = 0;
+            cls.students.forEach(s => {
+                const sum = calculateStudentSummary(s, cls);
+                if (sum.status === "APROVADO") app++; else if (sum.status === "RECUPERAÇÃO") warn++; else fail++;
+            });
+            setHtml('dash-total-students', cls.students.length); setHtml('dash-approved', app); setHtml('dash-warning', warn); setHtml('dash-failed', fail);
+            initCharts(app, warn, fail, cls);
+        };
+
+        const initCharts = (app, warn, fail, cls) => {
+            const isDark = document.documentElement.classList.contains('dark'), textColor = isDark ? '#94a3b8' : '#475569';
+            Object.keys(charts).forEach(k => { if(charts[k]) charts[k].destroy(); });
+
+            const createMiniCircle = (id, color, val, total) => {
+                const ctx = getEl(id); if(!ctx) return null;
+                return new Chart(ctx, { type: 'doughnut', data: { datasets: [{ data: [val, (total - val) || 0.001], backgroundColor: [color, 'rgba(0,0,0,0.05)'], borderWidth: 0 }] }, options: { cutout: '75%', maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } } } });
+            };
+            charts.d1 = createMiniCircle('dash-chart-total', '#FFCC00', 100, 100);
+            charts.d2 = createMiniCircle('dash-chart-app', '#10b981', app, cls.students.length);
+            charts.d3 = createMiniCircle('dash-chart-warn', '#f59e0b', warn, cls.students.length);
+            charts.d4 = createMiniCircle('dash-chart-fail', '#ef4444', fail, cls.students.length);
+
+            charts.perf = new Chart(getEl('chart-performance'), { type: 'bar', data: { labels: cls.settings.disciplines, datasets: [{ label: 'Média', data: cls.settings.disciplines.map(d => cls.students.length ? (cls.students.reduce((acc,s)=>acc+calculateFinalAvg(s,d,cls),0)/cls.students.length) : 0), backgroundColor: '#FFCC00', borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 10, ticks: { color: textColor, font: { size: 9 } } }, x: { ticks: { color: textColor, font: { size: 9 } } } }, plugins: { legend: { display: false } } } });
+            
+            charts.status = new Chart(getEl('chart-status'), { type: 'doughnut', data: { labels: ['Aprovados', 'Atenção', 'Retidos'], datasets: [{ data: [app, warn, fail], backgroundColor: ['#10b981', '#f59e0b', '#ef4444'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '80%', plugins: { legend: { position: 'bottom', labels: { color: textColor, boxWidth: 10, font: { weight: 'bold', size: 9 } } } } } });
+
+            let p = 0, f = 0, j = 0;
+            Object.values(cls.attendance).forEach(d => Object.values(d).forEach(st => { if(st==='P')p++; if(st==='F')f++; if(st==='J')j++; }));
+            const total = p + f + j || 1;
+            charts.engagement = new Chart(getEl('chart-engagement'), { type: 'doughnut', data: { labels: ['Presenças', 'Faltas', 'Justificadas'], datasets: [{ data: [p, f, j], backgroundColor: ['#10b981', '#ef4444', '#3b82f6'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } } });
+            setHtml('stat-p-val', `${p} (${((p/total)*100).toFixed(0)}%)`);
+            setHtml('stat-f-val', `${f} (${((f/total)*100).toFixed(0)}%)`);
+            setHtml('stat-j-val', `${j} (${((j/total)*100).toFixed(0)}%)`);
+        };
+
+        window.renderAttendance = () => {
+            const cls = state.classes.find(c => c.id === activeClassId), date = getEl('attendance-date').value, daily = cls.attendance[date] || {};
+            setHtml('att-table-body', cls.students.sort((a,b)=>a.name.localeCompare(b.name)).map((s, i) => `
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-900/40 transition-colors">
+                    <td class="px-6 py-4 text-center text-slate-400 font-mono text-[10px]">${i+1}</td>
+                    <td class="px-6 py-4 text-slate-950 dark:text-white uppercase truncate max-w-[200px]">${s.name}</td>
+                    <td class="px-6 py-4 text-center">
+                        <div class="flex justify-center gap-1">
+                            ${['P','F','J'].map(t => `<button onclick="markStatus('${s.id}','${t}')" class="w-8 h-8 md:w-9 md:h-9 rounded-xl font-black text-[10px] md:text-[11px] transition-all ${daily[s.id]===t ? 'bg-grad-gema text-slate-950 shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}">${t}</button>`).join('')}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-right tabular-nums text-slate-500">${calculateFreq(s, cls)}%</td>
+                </tr>`).join(''));
+        };
+
+        window.markStatus = (sid, st) => {
+            const date = getEl('attendance-date').value, cls = state.classes.find(c => c.id === activeClassId);
+            if(!cls.attendance[date]) cls.attendance[date] = {};
+            cls.attendance[date][sid] = cls.attendance[date][sid] === st ? '' : st;
+            updateUI();
+        };
+
+        window.markAllAttendance = (st) => {
+            const date = getEl('attendance-date').value, cls = state.classes.find(c => c.id === activeClassId);
+            if(!cls.attendance[date]) cls.attendance[date] = {};
+            cls.students.forEach(s => cls.attendance[date][s.id] = st);
+            updateUI();
+        };
+
+        window.renderGrades = () => {
+            const cls = state.classes.find(c => c.id === activeClassId), discSel = getEl('select-discipline'), p = getEl('select-period').value;
+            if(!discSel.options.length) setHtml('select-discipline', cls.settings.disciplines.map(d => `<option value="${d}">${d}</option>`).join(''));
+            const d = discSel.value, isConsolidated = p === 'consolidated';
+
+            if (isConsolidated) {
+                setHtml('grades-table-head', `<tr><th class="px-6 py-4 text-left">Académico</th><th class="px-4 py-4 text-center">B1</th><th class="px-4 py-4 text-center">B2</th><th class="px-4 py-4 text-center">B3</th><th class="px-4 py-4 text-center">B4</th><th class="px-6 py-4 text-right">Média Final</th><th class="px-6 py-4 text-right">Situação</th></tr>`);
+                setHtml('grades-table-body', cls.students.map(s => {
+                    const b = [1,2,3,4].map(pi => calculatePeriodAvg(s, d, pi, cls)), f = (b[0]+b[1]+b[2]+b[3])/4, res = calculateStudentSummary(s, cls);
+                    return `<tr><td class="px-6 py-4 uppercase text-slate-950 dark:text-white">${s.name}</td>${b.map(bi => `<td class="px-4 py-4 text-center opacity-60">${bi.toFixed(1)}</td>`).join('')}<td class="px-6 py-4 text-right font-black ${f>=cls.settings.mediaPass?'text-present':'text-absent'}">${f.toFixed(1)}</td><td class="px-6 py-4 text-right"><span class="px-3 py-1 rounded-full text-[8px] font-black ${res.status==='APROVADO'?'bg-present/10 text-present':'bg-absent/10 text-absent'}">${res.status}</span></td></tr>`;
+                }).join(''));
+            } else {
+                const evals = cls.settings.evalTypes || [{name: "Média", weight: 10}];
+                setHtml('grades-table-head', `<tr><th class="px-6 py-4 text-left">Académico</th>${evals.map(e => `<th class="px-4 py-4 text-center w-24">${e.name}</th>`).join('')}<th class="px-6 py-4 text-right w-32">Média Bi.</th></tr>`);
+                setHtml('grades-table-body', cls.students.map(s => `<tr class="hover:bg-slate-50 dark:hover:bg-slate-900/40"><td class="px-6 py-4 uppercase truncate max-w-[200px] text-slate-950 dark:text-white">${s.name}</td>${evals.map(e => `<td class="px-2 py-4 text-center"><input type="number" step="0.1" value="${(s.grades?.[d]?.[p]?.[e.name]) || ''}" onblur="saveGrade('${s.id}','${d}','${p}','${e.name}',this.value)" class="w-16 bg-slate-50 dark:bg-slate-800 border-none p-2 rounded-xl text-center font-bold text-xs focus:ring-2 focus:ring-gema text-slate-900 dark:text-white"></td>`).join('')}<td class="px-6 py-4 text-right font-black ${calculatePeriodAvg(s,d,p,cls)>=cls.settings.mediaPass?'text-present':'text-absent'}">${calculatePeriodAvg(s,d,p,cls).toFixed(1)}</td></tr>`).join(''));
+            }
+        };
+
+        window.saveGrade = (sid, d, p, e, val) => {
+            const cls = state.classes.find(c => c.id === activeClassId), s = cls.students.find(x=>x.id===sid);
+            if(!s.grades) s.grades = {}; if(!s.grades[d]) s.grades[d] = {}; if(!s.grades[d][p]) s.grades[d][p] = {};
+            s.grades[d][p][e] = val; updateUI();
+        };
+
+        window.renderStudentsTab = () => {
+            const cls = state.classes.find(c => c.id === activeClassId), sTxt = getEl('search-students-list').value.toLowerCase();
+            setHtml('students-table-body', cls.students.filter(s => s.name.toLowerCase().includes(sTxt)).map(s => `<tr class="hover:bg-slate-50 dark:hover:bg-slate-900/40"><td class="px-6 py-4 text-center"><input type="checkbox" value="${s.id}" onchange="updateSelectedStudents(this)" ${selectedStudents.includes(s.id)?'checked':''}></td><td class="px-6 py-4 uppercase font-bold text-slate-950 dark:text-white">${s.name}</td><td class="px-6 py-4 text-right space-x-1"><button onclick="generateIndividualReport('${s.id}')" title="Relatório" class="w-9 h-9 rounded-xl bg-present/10 text-present hover:bg-present hover:text-white"><i class="fas fa-chart-line text-xs"></i></button><button onclick="editStudent('${s.id}')" class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-gema"><i class="fas fa-edit text-xs"></i></button><button onclick="removeStudent('${s.id}')" class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-absent"><i class="fas fa-trash text-xs"></i></button></td></tr>`).join(''));
+            getEl('btn-bulk-delete').classList.toggle('hidden', selectedStudents.length === 0);
+        };
+
+        window.openModal = (id) => getEl(id).classList.remove('hidden');
+        window.closeModal = (id) => getEl(id).classList.add('hidden');
+        window.toggleSettingsMenu = () => getEl('settings-dropdown').classList.toggle('hidden');
+
+        window.customPrompt = (t, d, def = "", ico = "fa-edit", cb) => {
+            getEl('action-title').innerText = t; getEl('action-desc').innerText = d; 
+            getEl('action-icon').className = `fas ${ico} text-xl`; getEl('action-input-field').value = def;
+            getEl('action-input-container').classList.remove('hidden'); openModal('modal-input-action');
+            getEl('btn-action-confirm').onclick = () => { closeModal('modal-input-action'); cb(getEl('action-input-field').value); };
+        };
+
+        window.customConfirm = (t, d, ico = "fa-question", cb) => {
+            getEl('action-title').innerText = t; getEl('action-desc').innerText = d;
+            getEl('action-icon').className = `fas ${ico} text-xl`; getEl('action-input-container').classList.add('hidden');
+            openModal('modal-input-action'); getEl('btn-action-confirm').onclick = () => { closeModal('modal-input-action'); cb(true); };
+        };
+
+        window.handleAddClass = () => { const n = getEl('new-class-input').value.trim(); if(!n) return; const id = 'c'+Date.now(); state.classes.push({ id, name: n, students: [], attendance: {}, settings: {...state.classes[0].settings} }); activeClassId = id; getEl('new-class-input').value = ''; closeModal('modal-manage-classes'); updateUI(); renderClassList(); window.showToast("Turma Criada"); };
+        window.selectClass = (id) => { activeClassId = id; closeModal('modal-manage-classes'); updateUI(); };
+        window.deleteClass = (id) => { if(state.classes.length <= 1) return; customConfirm("Excluir Turma", "Confirma?", "fa-trash", (res) => { if(res){ state.classes = state.classes.filter(x=>x.id!==id); if(activeClassId===id) activeClassId = state.classes[0].id; updateUI(); renderClassList(); window.showToast("Turma Removida", "info"); } }); };
+        window.renameClass = (id) => { const c = state.classes.find(x=>x.id===id); customPrompt("Mudar Nome", "Novo nome", c.name, "fa-edit", (n) => { if(n){ c.name = n; updateUI(); renderClassList(); } }); };
+        window.renderClassList = () => {
+            setHtml('class-list-container', state.classes.map(c => `<div class="flex items-center gap-4 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border ${c.id===activeClassId?'border-gema shadow-lg ring-2 ring-gema/10':'border-slate-100 dark:border-slate-800'} transition-all"><div onclick="selectClass('${c.id}')" class="flex-grow cursor-pointer overflow-hidden"><span class="font-black uppercase ${c.id===activeClassId?'text-gema':'text-slate-900 dark:text-white'} truncate block text-[12px]">${c.name}</span></div><div class="flex gap-2"><button onclick="renameClass('${c.id}')" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white dark:bg-slate-800 text-slate-400 hover:text-gema shadow-sm"><i class="fas fa-edit text-[10px]"></i></button><button onclick="deleteClass('${c.id}')" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white dark:bg-slate-800 text-slate-400 hover:text-absent shadow-sm"><i class="fas fa-trash text-[10px]"></i></button></div></div>`).join(''));
+        };
+
+        window.openSettingsModal = (sec) => {
+            ['school', 'curriculum', 'profile'].forEach(s => { const el = getEl(`set-section-${s}`); if(el) el.classList.toggle('hidden', s !== sec); });
+            renderSettings();
+            openModal('modal-settings');
+        };
+
+        window.renderSettings = () => {
+            const cls = state.classes.find(c => c.id === activeClassId);
+            setVal('set-school-name', cls.settings.schoolName); setVal('set-media-pass', cls.settings.mediaPass); setVal('set-total-lessons', cls.settings.totalLessons);
+            setVal('set-prof-name', state.professor);
+            setHtml('set-disc-tags', cls.settings.disciplines.map(d => `<span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-3 py-1.5 rounded-xl text-[9px] font-black border border-slate-200 dark:border-slate-700 uppercase flex items-center gap-2">${d}<button onclick="removeDisc('${d}')" class="text-absent hover:scale-125 transition-transform">×</button></span>`).join(''));
+        };
+
+        window.saveGlobalSettings = () => { const cls = state.classes.find(c=>c.id===activeClassId); cls.settings.schoolName = getEl('set-school-name').value; cls.settings.mediaPass = parseFloat(getEl('set-media-pass').value); cls.settings.totalLessons = parseInt(getEl('set-total-lessons').value); updateUI(); closeModal('modal-settings'); window.showToast("Configurações Salvas"); };
+        window.saveProfileSettings = () => { state.professor = getEl('set-prof-name').value; const u = getEl('set-login-user').value.trim(); if(u) localStorage.setItem('diario_v28_creds', JSON.stringify({ user: u, pass: getCredentials().pass })); updateUI(); closeModal('modal-settings'); window.showToast("Perfil Atualizado"); };
+        window.addDisciplineToList = () => { const n = getEl('new-disc-name').value.trim(), cls = state.classes.find(c=>c.id===activeClassId); if(!n || cls.settings.disciplines.includes(n)) return; cls.settings.disciplines.push(n); getEl('new-disc-name').value = ''; renderSettings(); updateUI(); };
+        window.removeDisc = (d) => { const cls = state.classes.find(c=>c.id===activeClassId); cls.settings.disciplines = cls.settings.disciplines.filter(x=>x!==d); renderSettings(); updateUI(); };
+
+        window.handleAddStudent = () => customPrompt("Novo Académico", "Nome completo", "", "fa-user-plus", (n) => { if(n){ state.classes.find(c=>c.id===activeClassId).students.push({ id: 's'+Math.random().toString(36).substr(2,6), name: n, grades: {} }); updateUI(); window.showToast("Académico Adicionado"); } });
+        window.editStudent = (sid) => { const s = state.classes.find(c=>c.id===activeClassId).students.find(x=>x.id===sid); customPrompt("Editar", "Nome", s.name, "fa-edit", (n) => { if(n){ s.name = n; updateUI(); } }); };
+        window.removeStudent = (sid) => customConfirm("Remover", "Eliminar registo?", "fa-user-minus", (res) => { if(res){ const cls = state.classes.find(c=>c.id===activeClassId); cls.students = cls.students.filter(x=>x.id!==sid); updateUI(); } });
+        window.handleBulkImportPrompt = () => customPrompt("Importar Lote", "Nomes (um por linha)", "", "fa-paste", (txt) => { if(txt){ txt.split('\n').filter(l=>l.trim().length>3).forEach(n => state.classes.find(c=>c.id===activeClassId).students.push({ id: 's'+Math.random().toString(36).substr(2,6), name: n.trim(), grades: {} })); updateUI(); window.showToast("Importação Finalizada"); } });
+
+        window.handleCsvImport = (input) => {
+            const file = input.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const text = e.target.result, lines = text.split(/\r?\n/), cls = state.classes.find(c => c.id === activeClassId);
+                let count = 0;
+                lines.forEach(line => {
+                    const name = line.replace(/["']/g, "").trim();
+                    if (name.length > 2 && !cls.students.find(s => s.name === name)) { cls.students.push({ id: 's' + Math.random().toString(36).substr(2, 6), name, grades: {} }); count++; }
+                });
+                input.value = ''; updateUI(); window.showToast(`${count} Académicos importados`);
+            }; reader.readAsText(file);
+        };
+
+        window.updateSelectedStudents = (el) => { if(el.checked) selectedStudents.push(el.value); else selectedStudents = selectedStudents.filter(id => id !== el.value); renderStudentsTab(); };
+        window.toggleSelectAll = (el) => { const cls = state.classes.find(c => c.id === activeClassId); selectedStudents = el.checked ? cls.students.map(s => s.id) : []; renderStudentsTab(); };
+        window.handleBulkDelete = () => customConfirm("Apagar Massa", `Deseja excluir ${selectedStudents.length}?`, "fa-trash", (res) => { if(res){ const cls = state.classes.find(c=>c.id===activeClassId); cls.students = cls.students.filter(s => !selectedStudents.includes(s.id)); selectedStudents = []; updateUI(); } });
+
+        window.handleExportDailyAttendancePdf = () => {
+            const cls = state.classes.find(c => c.id === activeClassId);
+            const date = getEl('attendance-date').value;
+            const daily = cls.attendance[date] || {};
+            const html = `
+                <div style="font-family: sans-serif; padding: 40px; color: #0f172a;">
+                    <h1 style="font-size: 24px; font-weight: 800; border-bottom: 4px solid #FFCC00; padding-bottom: 10px;">RELATÓRIO DE CHAMADA</h1>
+                    <p style="font-weight: bold; margin-top: 5px;">INSTITUIÇÃO: ${cls.settings.schoolName}</p>
+                    <p>DATA: ${new Date(date).toLocaleDateString()} | TURMA: ${cls.name}</p>
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                        <thead>
+                            <tr style="background: #f1f5f9; text-align: left;">
+                                <th style="padding: 10px; border: 1px solid #e2e8f0;">Nº</th>
+                                <th style="padding: 10px; border: 1px solid #e2e8f0;">ALUNO</th>
+                                <th style="padding: 10px; border: 1px solid #e2e8f0; text-align: center;">STATUS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${cls.students.sort((a,b)=>a.name.localeCompare(b.name)).map((s, i) => `<tr><td style="padding: 10px; border: 1px solid #e2e8f0;">${i+1}</td><td style="padding: 10px; border: 1px solid #e2e8f0;">${s.name.toUpperCase()}</td><td style="padding: 10px; border: 1px solid #e2e8f0; text-align: center; font-weight: bold;">${daily[s.id] || '-'}</td></tr>`).join('')}
+                        </tbody>
+                    </table>
+                </div>`;
+            html2pdf().from(html).set({ margin: 0, filename: `Chamada_${cls.name}_${date}.pdf`, html2canvas: { scale: 2 } }).save();
+        };
+
+        window.handleExportStudentListPdf = () => {
+            const cls = state.classes.find(c => c.id === activeClassId);
+            const html = `<div style="font-family: sans-serif; padding: 40px; color: #0f172a;"><div style="text-align: center; margin-bottom: 30px;"><h1 style="font-size: 20px; font-weight: 800;">LISTA DE ASSINATURA</h1><p>${cls.settings.schoolName}</p><p>TURMA: ${cls.name} | DATA: ____/____/2024</p></div><table style="width: 100%; border-collapse: collapse;"><thead><tr style="background: #f1f5f9; text-align: left;"><th style="padding: 10px; border: 1px solid #e2e8f0; width: 40px;">Nº</th><th style="padding: 10px; border: 1px solid #e2e8f0;">NOME DO ACADÉMICO</th><th style="padding: 10px; border: 1px solid #e2e8f0; width: 250px;">ASSINATURA</th></tr></thead><tbody>${cls.students.sort((a,b)=>a.name.localeCompare(b.name)).map((s, i) => `<tr><td style="padding: 15px 10px; border: 1px solid #e2e8f0; font-size: 11px;">${i+1}</td><td style="padding: 15px 10px; border: 1px solid #e2e8f0; font-size: 11px;">${s.name.toUpperCase()}</td><td style="padding: 15px 10px; border: 1px solid #e2e8f0; border-bottom: 1px solid #cbd5e1;"></td></tr>`).join('')}</tbody></table></div>`;
+            html2pdf().from(html).set({ margin: 0, filename: `Lista_Assinatura_${cls.name}.pdf`, html2canvas: { scale: 2 } }).save();
+        };
+
+        window.generateIndividualReport = (sid) => {
+            const cls = state.classes.find(c => c.id === activeClassId), s = cls.students.find(x => x.id === sid), res = calculateStudentSummary(s, cls);
+            getEl('boletim-view').innerHTML = `<div class="space-y-10 animate-fade"><div class="flex justify-between items-end border-b-4 border-gema pb-8"><div><p class="text-[10px] font-black uppercase text-gema mb-2 tracking-widest">Elite Performance Insight</p><h2 class="text-5xl font-black uppercase tracking-tighter text-slate-950 dark:text-white">${s.name}</h2><p class="text-slate-500 font-bold uppercase text-xs mt-1">${cls.name} • Ano Letivo 2024</p></div><div class="text-right"><span class="block text-5xl font-black ${res.finalAvg >= cls.settings.mediaPass ? 'text-present' : 'text-absent'}">${res.finalAvg.toFixed(1)}</span><span class="text-[9px] font-black uppercase text-slate-400">Média Global</span></div></div><div class="grid grid-cols-1 lg:grid-cols-2 gap-8"><div class="card-premium p-8 flex flex-col items-center justify-center min-h-[400px] bg-slate-50/50 dark:bg-slate-900/50"><h4 class="text-[10px] font-black uppercase text-slate-400 mb-8 tracking-widest">Análise de Equilíbrio</h4><div class="w-full h-full relative"><canvas id="radar-student"></canvas></div></div><div class="grid grid-cols-1 gap-6"><div class="card-premium p-8 flex flex-col justify-center min-h-[220px]"><h4 class="text-[10px] font-black uppercase text-slate-400 mb-6 tracking-widest">Frequência Escolar</h4><div class="flex items-center gap-8"><div class="w-32 h-32 relative"><canvas id="mini-chart-freq"></canvas></div><div><p class="text-4xl font-black text-slate-950 dark:text-white">${res.freq}%</p><p class="text-[9px] font-bold text-slate-400 uppercase">Presença Total</p><p class="text-[10px] mt-2 font-black ${res.freq >= 75 ? 'text-present' : 'text-absent'} uppercase">${res.freq >= 75 ? 'Regular' : 'Abaixo do Limite'}</p></div></div></div><div class="card-premium p-8 flex flex-col justify-center min-h-[220px]"><h4 class="text-[10px] font-black uppercase text-slate-400 mb-6 tracking-widest">Situação de Aprovação</h4><div class="space-y-4"><div class="flex justify-between items-center"><span class="text-xs font-black uppercase">${res.status}</span><span class="text-xs font-bold text-slate-400">Meta: ${cls.settings.mediaPass.toFixed(1)}</span></div><div class="h-10 w-full relative"><canvas id="mini-chart-status"></canvas></div></div></div></div></div><div class="card-premium p-10"><h4 class="text-[10px] font-black uppercase text-slate-400 mb-8 tracking-widest">Mapa de Notas por Disciplina</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">${cls.settings.disciplines.map(d => { const avg = calculateFinalAvg(s, d, cls); return `<div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800"><span class="font-bold text-slate-500 uppercase text-[11px]">${d}</span><div class="flex items-center gap-4"><div class="w-32 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden"><div class="h-full bg-gema" style="width: ${avg * 10}%"></div></div><span class="font-black text-slate-950 dark:text-white w-6 text-right">${avg.toFixed(1)}</span></div></div>`; }).join('')}</div></div></div>`;
+            openModal('modal-boletim');
+            setTimeout(() => {
+                if(charts.radar) charts.radar.destroy();
+                charts.radar = new Chart(getEl('radar-student'), { type: 'radar', data: { labels: cls.settings.disciplines, datasets: [{ data: cls.settings.disciplines.map(d => calculateFinalAvg(s, d, cls)), backgroundColor: 'rgba(255, 204, 0, 0.2)', borderColor: '#FFCC00', pointBackgroundColor: '#FFCC00', borderWidth: 2 }] }, options: { scales: { r: { beginAtZero: true, max: 10, ticks: { display: false }, grid: { color: 'rgba(148, 163, 184, 0.1)' } } }, plugins: { legend: { display: false } } } });
+                if(charts.miniFreq) charts.miniFreq.destroy();
+                charts.miniFreq = new Chart(getEl('mini-chart-freq'), { type: 'doughnut', data: { datasets: [{ data: [res.freq, 100 - res.freq], backgroundColor: [res.freq >= 75 ? '#10b981' : '#ef4444', 'rgba(0,0,0,0.05)'], borderWidth: 0, circumference: 180, rotation: 270 }] }, options: { cutout: '85%', maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+                if(charts.miniStatus) charts.miniStatus.destroy();
+                charts.miniStatus = new Chart(getEl('mini-chart-status'), { type: 'bar', data: { labels: ['Progresso'], datasets: [{ label: 'Min', data: [cls.settings.mediaPass], backgroundColor: 'rgba(0,0,0,0.1)', borderRadius: 20, barThickness: 16 }, { label: 'Nota', data: [res.finalAvg], backgroundColor: res.finalAvg >= cls.settings.mediaPass ? '#10b981' : '#ef4444', borderRadius: 20, barThickness: 16 }] }, options: { indexAxis: 'y', maintainAspectRatio: false, scales: { x: { display: false, max: 10 }, y: { display: false } }, plugins: { legend: { display: false } } } });
+            }, 300);
+        };
+
+        window.handleBackupData = () => {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", `Elite_Backup_${new Date().toISOString().split('T')[0]}.json`);
+            document.body.appendChild(downloadAnchorNode); downloadAnchorNode.click(); downloadAnchorNode.remove();
+            window.showToast("Backup Realizado");
+        };
+
+        window.handleLogout = () => customConfirm("Sair", "Encerrar sessão?", "fa-power-off", (res) => { if(res){ localStorage.setItem('diario_v28_auth', 'false'); checkAuthAndRoute(); } });
+        
+        window.toggleCompactMode = () => { 
+            state.config.compact = !state.config.compact; 
+            document.body.classList.toggle('compact-mode', !!state.config.compact); 
+            getEl('compact-icon').className = state.config.compact ? 'fas fa-expand text-xs' : 'fas fa-compress text-xs';
+            window.showToast(state.config.compact ? "Modo Compacto Ativado" : "Modo Amplo Ativado");
+            setTimeout(updateUI, 50);
+        };
+
+        getEl('theme-toggle').onclick = () => { const isDark = document.documentElement.classList.toggle('dark'); state.config.theme = isDark ? 'dark' : 'light'; getEl('theme-icon').className = isDark ? 'fas fa-sun text-xs' : 'fas fa-moon text-xs'; updateUI(); };
+        getEl('btn-export-pdf').onclick = () => { const el = getEl('boletim-view'); window.showToast("Gerando PDF..."); html2pdf().from(el).set({ margin: 10, filename: 'Relatorio_Elite_v28.pdf', html2canvas: { scale: 2 }, jsPDF: { format: 'a4', orientation: 'portrait' } }).save(); };
+        window.onload = () => { renderClassList(); startEliteEngine(); };
+    </script>
+</body>
+</html>
