@@ -241,12 +241,14 @@
 
                 <div class="glass-card rounded-2xl overflow-hidden shadow-2xl">
                     <div class="overflow-x-auto custom-scrollbar">
-                        <table class="w-full text-left border-collapse table-fixed min-w-[600px]">
+                        <table class="w-full text-left border-collapse table-fixed min-w-[800px]">
                             <thead class="bg-black/20 dark:bg-white/5 border-b border-border">
                                 <tr class="text-[9px] font-black uppercase text-sub">
                                     <th class="p-3 w-10 text-center"><input type="checkbox" id="select-all" onchange="App.toggleSelectAll(this.checked)" class="accent-brand"></th>
                                     <th class="p-3 w-12 text-center border-r border-border/30">Nº</th>
-                                    <th class="p-3">Nome do Estudante</th>
+                                    <th class="p-3 w-48">Nome do Estudante</th>
+                                    <th class="p-3 w-28">Data Nasc.</th>
+                                    <th class="p-3 w-16 text-center">Idade</th>
                                     <th class="p-3 w-32 text-center">Status</th>
                                     <th class="p-3 w-16 text-center">Ações</th>
                                  </tr>
@@ -261,7 +263,7 @@
                 </div>
             </section>
 
-            <!-- SECTION 2: MATRIZ -->
+            <!-- SECTION 2: MATRIZ (unchanged) -->
             <section id="view-matrix" class="hidden space-y-4 animate-in">
                 <div class="flex items-center justify-between bg-base-panel p-3 rounded-2xl border border-border">
                     <div class="flex items-center gap-4">
@@ -278,7 +280,7 @@
                 </div>
             </section>
 
-            <!-- SECTION 3: DASHBOARD -->
+            <!-- SECTION 3: DASHBOARD (unchanged) -->
             <section id="view-stats" class="hidden space-y-4 animate-in">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="glass-card p-8 rounded-[2rem] flex flex-col items-center justify-center text-center">
@@ -307,7 +309,7 @@
                 </div>
             </section>
 
-            <!-- SECTION 4: CONVERSOR -->
+            <!-- SECTION 4: CONVERSOR (updated with enhanced mapping) -->
             <section id="view-convert" class="hidden space-y-4 animate-in">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <div class="space-y-4">
@@ -357,7 +359,7 @@
             </section>
         </main>
 
-        <!-- Selection Toolbar -->
+        <!-- Selection Toolbar (unchanged) -->
         <div id="selection-toolbar" class="hidden fixed bottom-6 left-1/2 glass-card bg-brand text-base-dark px-8 py-4 rounded-3xl shadow-2xl z-[150] items-center gap-10 border-none min-w-[360px]">
             <div class="flex flex-col text-center">
                 <span id="sel-count" class="text-2xl font-black leading-none">0</span>
@@ -373,7 +375,7 @@
         </div>
     </div>
 
-    <!-- Modals -->
+    <!-- Modals (unchanged) -->
     <div id="modal-turmas" class="modal-backdrop">
         <div class="glass-card p-6 rounded-[2.5rem] max-w-sm w-full animate-in shadow-3xl">
             <h3 class="text-sm font-black uppercase text-brand mb-6 text-center tracking-widest">Gestão de Unidades</h3>
@@ -470,7 +472,8 @@
                 
                 if (!this.data.classes || this.data.classes.length === 0) {
                     const id = 'c_' + Date.now();
-                    const defaultStudents = [
+                    // Default students with empty fields for birthDate, sexo, etc.
+                    const defaultNames = [
                         "AFONSO CARDOSO", "ANA SILVA", "BEATRIZ CUNHA", "BRUNO SANTOS", "CAIO MACHADO", 
                         "CARLA OLIVEIRA", "DAVID SOUZA", "DIOGO ROCHA", "EDUARDA SARAIVA", "ELIANA COSTA", 
                         "FABIO PEREIRA", "FELIPE NEVES", "GABRIELA RODRIGUES", "GIOVANA FREITAS", "HENRIQUE MELLO", 
@@ -480,8 +483,14 @@
                         "PEDRO TEIXEIRA", "QUITÉRIA RIBEIRO", "RENATO BRAGA", "RICARDO MOREIRA", "SARA PINTO", 
                         "TIAGO BARBOSA", "URSULA CAVALCANTE", "VITOR CORREIA", "WAGNER DIAS", "XAVIER CASTRO", 
                         "YARA VIEIRA", "ZÉLIA MONTEIRO"
-                    ].map(name => ({ id: 's_' + Math.random().toString(36).substr(2, 9), name: name.toUpperCase() }));
-
+                    ];
+                    const defaultStudents = defaultNames.map(name => ({ 
+                        id: 's_' + Math.random().toString(36).substr(2, 9), 
+                        name: name.toUpperCase(),
+                        birthDate: '',
+                        sexo: '',
+                        idNumber: ''
+                    }));
                     this.data.classes = [{ id, name: "TURMA PLATINUM (42)", students: defaultStudents, history: {} }];
                     this.data.activeClassId = id;
                     this.save();
@@ -539,6 +548,18 @@
                 lucide.createIcons();
             },
 
+            // Helper to compute age from birthDate
+            calculateAge(birthDateStr) {
+                if (!birthDateStr) return '';
+                const today = new Date();
+                const birth = new Date(birthDateStr);
+                if (isNaN(birth.getTime())) return '';
+                let age = today.getFullYear() - birth.getFullYear();
+                const m = today.getMonth() - birth.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+                return age;
+            },
+
             render() {
                 const cls = this.getActiveClass();
                 if (!cls) return;
@@ -558,7 +579,7 @@
                 if (this.isAdding) {
                     const tr = document.createElement('tr');
                     tr.className = "bg-brand/10 border-l-2 border-l-brand animate-in";
-                    tr.innerHTML = `<td class="p-3"><td class="p-3 text-center opacity-20 border-r border-border/30">--<td class="p-3" colspan="2"><input type="text" id="add-name" placeholder="NOME DO ALUNO + ENTER" class="bg-transparent w-full font-black text-brand outline-none uppercase text-[11px]"><td class="p-3 text-center"><button onclick="App.confirmAdd()" class="text-accent-green"><i data-lucide="check-circle" class="w-6 h-6"></i></button>`;
+                    tr.innerHTML = `<td class="p-3"><td class="p-3 text-center opacity-20 border-r border-border/30">--<td class="p-3" colspan="2"><input type="text" id="add-name" placeholder="NOME DO ALUNO + ENTER" class="bg-transparent w-full font-black text-brand outline-none uppercase text-[11px]"><td class="p-3" colspan="2"></td><td class="p-3 text-center"><button onclick="App.confirmAdd()" class="text-accent-green"><i data-lucide="check-circle" class="w-6 h-6"></i></button>`;
                     container.appendChild(tr);
                     const inp = document.getElementById('add-name');
                     if(inp) {
@@ -573,12 +594,15 @@
                 students.forEach((s, idx) => {
                     const isSel = this.selectedUids.has(s.id);
                     const status = records[s.id] || '';
+                    const age = this.calculateAge(s.birthDate);
                     const tr = document.createElement('tr');
                     tr.className = `transition-all border-b border-border/20 ${isSel ? 'bg-brand/5 border-l-4 border-l-brand' : 'hover:bg-white/[0.02]'}`;
                     tr.innerHTML = `
                         <td class="p-2 text-center"><input type="checkbox" ${isSel ? 'checked' : ''} onchange="App.toggleSel('${s.id}')" class="accent-brand w-4 h-4">
                         <td class="p-2 text-center font-mono opacity-30 text-[10px] border-r border-border/30">${(idx+1).toString().padStart(2, '0')}
                         <td class="p-2"><input type="text" value="${s.name.replace(/'/g, "\\'")}" onblur="App.renameStudent('${s.id}', this.value)" class="bg-transparent w-full font-bold uppercase outline-none focus:text-brand truncate border-none text-[11px]">
+                        <td class="p-2"><input type="text" value="${s.birthDate || ''}" placeholder="DD/MM/AAAA" onblur="App.updateStudentField('${s.id}', 'birthDate', this.value)" class="bg-transparent w-full text-[9px] font-mono outline-none focus:text-brand border-none">
+                        <td class="p-2 text-center font-mono text-[9px]">${age}
                         <td class="p-2 text-center"><div class="flex items-center justify-center gap-1.5">${['P','F','J'].map(st => `<button onclick="App.markStatus('${s.id}', '${st}')" class="status-btn ${status === st ? 'active-'+st : 'text-sub/40'}">${st}</button>`).join('')}</div>
                         <td class="p-2 text-center"><button onclick="App.deleteStudent('${s.id}')" class="text-accent-danger opacity-20 hover:opacity-100"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                     `;
@@ -588,6 +612,16 @@
                 if(empty) empty.classList.toggle('hidden', students.length > 0 || this.isAdding);
                 this.updateDash();
                 lucide.createIcons();
+            },
+
+            updateStudentField(id, field, value) {
+                const cls = this.getActiveClass();
+                const student = cls.students.find(s => s.id === id);
+                if (student) {
+                    student[field] = value;
+                    this.save();
+                    this.render(); // refresh to update age display
+                }
             },
 
             updateDash() {
@@ -625,7 +659,7 @@
                 const val = document.getElementById('add-name').value.trim().toUpperCase();
                 if (val) {
                     const cls = this.getActiveClass();
-                    cls.students.push({ id: 's_' + Date.now() + Math.random(), name: val });
+                    cls.students.push({ id: 's_' + Date.now() + Math.random(), name: val, birthDate: '', sexo: '', idNumber: '' });
                     this.isAdding = false; this.save(); this.render();
                 }
             },
@@ -656,7 +690,7 @@
                 for (let d = 1; d <= days; d++) h += `<th class="p-1 border-border/30 bg-black/10 text-fg">${d}</th>`;
                 h += `</thead><tbody>`;
                 [...cls.students].sort((a,b) => a.name.localeCompare(b.name)).forEach(s => {
-                    h += `<td class="sticky-col font-black uppercase truncate border-r border-border/50 text-[9px] text-fg">${s.name}`;
+                    h += `<tr><td class="sticky-col font-black uppercase truncate border-r border-border/50 text-[9px] text-fg">${s.name}`;
                     for (let d = 1; d <= days; d++) {
                         const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                         const st = cls.history[ds]?.[s.id] || '';
@@ -694,7 +728,7 @@
                 }).sort((a,b) => a.name.localeCompare(b.name));
 
                 reports.forEach(r => { 
-                    body.innerHTML += `<td class="p-3 font-bold uppercase truncate max-w-[120px] text-fg">${r.name}<td class="p-3 text-center font-bold text-accent-green">${r.P}<td class="p-3 text-center font-bold text-accent-danger">${r.F}<td class="p-3 text-center"><span class="px-2 py-0.5 rounded-full bg-brand/10 text-brand font-black">${r.freq}%</span></tr>`; 
+                    body.innerHTML += `<tr><td class="p-3 font-bold uppercase truncate max-w-[120px] text-fg">${r.name}<td class="p-3 text-center font-bold text-accent-green">${r.P}<td class="p-3 text-center font-bold text-accent-danger">${r.F}<td class="p-3 text-center"><span class="px-2 py-0.5 rounded-full bg-brand/10 text-brand font-black">${r.freq}%</span></tr>`; 
                 });
                 
                 const ctx = document.getElementById('chart-attendance').getContext('2d');
@@ -724,19 +758,24 @@
                     
                     let h = `<table style="width:100%; border-collapse:collapse; border:1px solid #ddd; background: white !important; font-family: sans-serif;">`;
                     h += `<tr style="background:#ffab07 !important; color:black !important; font-weight:900;">
-                            <th style="padding:10px; border:1px solid #ddd; font-size:10px; width:40px; text-align:center;">Nº</th>
-                            <th style="padding:10px; border:1px solid #ddd; font-size:10px; text-align:left;">NOME COMPLETO</th>
-                            <th style="padding:10px; border:1px solid #ddd; font-size:10px; width:100px; text-align:center;">STATUS</th>
+                            <th style="padding:8px; border:1px solid #ddd; font-size:9px; width:30px; text-align:center;">Nº</th>
+                            <th style="padding:8px; border:1px solid #ddd; font-size:9px; text-align:left;">NOME</th>
+                            <th style="padding:8px; border:1px solid #ddd; font-size:9px; text-align:left;">DATA NASC.</th>
+                            <th style="padding:8px; border:1px solid #ddd; font-size:9px; text-align:center;">IDADE</th>
+                            <th style="padding:8px; border:1px solid #ddd; font-size:9px; text-align:center;">STATUS</th>
                            `;
                     
                     [...cls.students].sort((a,b) => a.name.localeCompare(b.name)).forEach((s, i) => {
                         const st = (cls.history[date] || {})[s.id] || '-';
                         const color = st === 'P' ? '#16a34a' : (st === 'F' ? '#dc2626' : (st === 'J' ? '#d97706' : '#999'));
                         const bgColor = (i % 2 === 0) ? '#ffffff' : '#f9f9f9';
+                        const age = this.calculateAge(s.birthDate);
                         h += `<tr style="background:${bgColor} !important;">
-                                <td style="padding:8px; border:1px solid #ddd; font-size:10px; text-align:center; color: black !important;">${(i+1).toString().padStart(2,'0')}
-                                <td style="padding:8px; border:1px solid #ddd; font-size:10px; font-weight:700; color: black !important;">${s.name}
-                                <td style="padding:8px; border:1px solid #ddd; font-size:10px; text-align:center; font-weight:900; color:${color} !important;">${st || '-'}
+                                <td style="padding:6px; border:1px solid #ddd; font-size:9px; text-align:center; color: black !important;">${(i+1).toString().padStart(2,'0')}
+                                <td style="padding:6px; border:1px solid #ddd; font-size:9px; font-weight:700; color: black !important;">${s.name}
+                                <td style="padding:6px; border:1px solid #ddd; font-size:9px; color: black !important;">${s.birthDate || '-'}
+                                <td style="padding:6px; border:1px solid #ddd; font-size:9px; text-align:center; color: black !important;">${age}
+                                <td style="padding:6px; border:1px solid #ddd; font-size:9px; text-align:center; font-weight:900; color:${color} !important;">${st || '-'}
                                `;
                     });
                     h += `</table>`;
@@ -760,9 +799,9 @@
 
             exportCSV() {
                 const cls = this.getActiveClass();
-                let csv = `ID;Nome;Status Atual\n`;
+                let csv = `ID;Nome;Data Nascimento;Sexo;Status Atual\n`;
                 const date = document.getElementById('current-date').value;
-                cls.students.forEach(s => csv += `${s.id};${s.name};${cls.history[date]?.[s.id] || '-'}\n`);
+                cls.students.forEach(s => csv += `${s.id};${s.name};${s.birthDate || ''};${s.sexo || ''};${cls.history[date]?.[s.id] || '-'}\n`);
                 saveAs(new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8' }), `SGS_${cls.name}_Export.csv`);
             },
 
@@ -773,8 +812,26 @@
                     const lines = e.target.result.split('\n').filter(l => l.trim());
                     if (lines.length < 2) return;
                     const sep = lines[0].includes(';') ? ';' : ',';
+                    const headers = lines[0].split(sep).map(h => h.toLowerCase().replace(/["']/g, '').trim());
                     const cls = this.getActiveClass();
-                    lines.forEach((l, i) => { if (i === 0) return; const cols = l.split(sep); if (cols.length >= 2) { const name = cols[1].replace(/"/g, '').trim().toUpperCase(); if(name && !cls.students.find(x => x.name === name)) cls.students.push({ id: 's_' + Date.now() + Math.random(), name }); } });
+                    lines.slice(1).forEach(l => {
+                        if (!l.trim()) return;
+                        const cols = l.split(sep);
+                        const studentData = {};
+                        headers.forEach((h, idx) => {
+                            if (idx < cols.length) studentData[h] = cols[idx].replace(/["']/g, '').trim();
+                        });
+                        const name = (studentData.nome || studentData.name || '').toUpperCase();
+                        if (name && !cls.students.find(x => x.name === name)) {
+                            cls.students.push({
+                                id: 's_' + Date.now() + Math.random(),
+                                name: name,
+                                birthDate: studentData['data nascimento'] || studentData['data_nasc'] || studentData['datanasc'] || '',
+                                sexo: studentData.sexo || '',
+                                idNumber: studentData.id || studentData.nº || ''
+                            });
+                        }
+                    });
                     this.save(); this.render();
                 };
                 r.readAsText(file);
@@ -907,7 +964,7 @@
                 this.save(); this.render(); 
             },
 
-            // CORREÇÃO: PDF do Conversor usando jsPDF + autoTable
+            // PDF do Conversor usando jsPDF + autoTable
             async exportGenericPDF(data) {
                 if (!data || data.length === 0) {
                     alert("Não há dados para exportar.");
@@ -1023,19 +1080,50 @@
                 });
             },
 
+            // Enhanced sync: tries to map columns to student fields (name, birthDate, sexo, id)
             sync() {
                 if(this.structured.length === 0) return;
                 const cls = App.getActiveClass();
                 let added = 0;
-                this.structured.forEach(row => {
-                    let candidate = row.reduce((a, b) => a.length > b.length ? a : b, "");
-                    let clean = candidate.replace(/^\d+[\s\.\-\)]+/, '').trim().toUpperCase();
-                    if(clean.length > 2 && !cls.students.find(x => x.name === clean)) { 
-                        cls.students.push({ id: 's_' + Date.now() + Math.random(), name: clean }); 
-                        added++; 
+
+                // Try to detect headers (first row)
+                const headers = this.structured[0].map(h => h.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w]/g, ''));
+                const nameIdx = headers.findIndex(h => h.includes('nome') || h === 'name' || h === 'aluno');
+                const birthIdx = headers.findIndex(h => h.includes('data') && (h.includes('nasc') || h.includes('aniversario')));
+                const sexoIdx = headers.findIndex(h => h === 'sexo' || h === 'genero');
+                const idIdx = headers.findIndex(h => h === 'id' || h === 'nº' || h === 'numero');
+
+                // If no clear header detection, treat first row as data
+                const startRow = (nameIdx !== -1 || birthIdx !== -1 || sexoIdx !== -1) ? 1 : 0;
+
+                for (let i = startRow; i < this.structured.length; i++) {
+                    const row = this.structured[i];
+                    let name = '';
+                    let birth = '';
+                    let sexo = '';
+                    let idNum = '';
+
+                    if (nameIdx !== -1 && row[nameIdx]) name = row[nameIdx];
+                    else if (row[0]) name = row[0]; // fallback to first column
+
+                    if (birthIdx !== -1 && row[birthIdx]) birth = row[birthIdx];
+                    if (sexoIdx !== -1 && row[sexoIdx]) sexo = row[sexoIdx];
+                    if (idIdx !== -1 && row[idIdx]) idNum = row[idIdx];
+
+                    name = name.trim().toUpperCase();
+                    if (name.length > 2 && !cls.students.find(x => x.name === name)) {
+                        cls.students.push({ 
+                            id: 's_' + Date.now() + Math.random(), 
+                            name: name,
+                            birthDate: birth,
+                            sexo: sexo,
+                            idNumber: idNum
+                        });
+                        added++;
                     }
-                });
+                }
                 App.save(); App.switchTab('diary'); App.render(); this.reset();
+                if (added) alert(`${added} novo(s) aluno(s) adicionado(s) com dados de nascimento e sexo (quando disponíveis).`);
             },
 
             reset() { 
