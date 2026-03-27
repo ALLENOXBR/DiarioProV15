@@ -1,16 +1,19 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="antialiased dark">
+<html lang="pt-pt" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Diário Pro | Elite Analytics v28.5</title>
+    <title>SGS Pro v12.9.1 - Unified Master Platinum</title>
     
-    <!-- Dependencies -->
+    <!-- Consolidated Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
         tailwind.config = {
@@ -18,848 +21,1048 @@
             theme: {
                 extend: {
                     colors: {
-                        gema: { light: '#FFE066', DEFAULT: '#FFCC00', dark: '#F5B800' },
-                        present: '#10b981',
-                        absent: '#ef4444',
-                        justified: '#3b82f6',
-                        darkCard: '#1e293b',
-                        slate: {
-                            50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 800: '#1e293b', 900: '#0f172a', 950: '#020617',
-                        }
+                        brand: { DEFAULT: '#ffab07', neon: '#ff9100' },
+                        base: { dark: '#0f1214', panel: '#1a1f24', border: '#334155' },
+                        accent: { green: '#16a34a', blue: '#0e8d94', danger: '#dc2626', amber: '#d97706' }
                     }
                 }
             }
         }
     </script>
-
+    
     <style>
-        body { scroll-behavior: smooth; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; font-size: 0.82rem; transition: background 0.3s; overflow-x: hidden; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
         
-        /* CORREÇÃO MODO COMPACTO ELITE */
-        body.compact-mode { font-size: 0.72rem !important; }
-        body.compact-mode .card-premium { padding: 0.6rem !important; }
-        body.compact-mode .chart-container { height: 220px !important; min-height: 220px; }
-        body.compact-mode .grid { gap: 0.5rem !important; }
-        body.compact-mode h1 { font-size: 1rem !important; }
-        body.compact-mode .text-3xl { font-size: 1.5rem !important; line-height: 1; }
-        body.compact-mode .py-6 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
-        body.compact-mode .px-6 { padding-left: 0.75rem !important; padding-right: 0.75rem !important; }
-        body.compact-mode .py-4 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
-        body.compact-mode .mb-6 { margin-bottom: 0.75rem !important; }
-        body.compact-mode .gap-6 { gap: 0.75rem !important; }
-        body.compact-mode canvas { max-width: 100% !important; }
+        :root {
+            --bg: #0f1214; --card: #1a1f24; --fg: #f8fafc; --sub: #94a3b8; --border: #334155; --accent: #ffab07;
+        }
+        body.light-mode {
+            --bg: #f8fafc; --card: #ffffff; --fg: #0f172a; --sub: #64748b; --border: #e2e8f0; --accent: #f59e0b;
+        }
 
-        .glass { background: rgba(248, 250, 252, 0.98); backdrop-filter: blur(12px); }
-        .dark .glass { background: rgba(15, 23, 42, 0.98); }
+        body {
+            background-color: var(--bg);
+            color: var(--fg);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            transition: all 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
+            font-size: 0.72rem;
+        }
+
+        .text-sub { color: var(--sub); }
+        .text-fg { color: var(--fg); }
+        .bg-base-panel { background-color: var(--card); }
+        .border-base-border { border-color: var(--border); }
+
+        .glass-card {
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 15px -5px rgba(0, 0, 0, 0.4);
+        }
+
+        .nav-tab {
+            padding: 8px 14px;
+            font-weight: 800;
+            font-size: 0.58rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--sub);
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .nav-tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+            background: rgba(255, 171, 7, 0.05);
+        }
+
+        .status-btn {
+            width: 24px; height: 24px; border-radius: 6px; font-weight: 900; font-size: 0.6rem;
+            transition: all 0.2s; border: 1.5px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            background: transparent;
+        }
+        .status-btn.active-P { background: #16a34a !important; color: white !important; border-color: transparent !important; }
+        .status-btn.active-F { background: #dc2626 !important; color: white !important; border-color: transparent !important; }
+        .status-btn.active-J { background: #d97706 !important; color: white !important; border-color: transparent !important; }
+
+        #matrix-container table { border-collapse: collapse; width: 100%; font-size: 0.55rem; }
+        #matrix-container th, #matrix-container td { border: 1px solid var(--border); text-align: center; min-width: 18px; height: 22px; }
+        #matrix-container td.sticky-col, #matrix-container th.sticky-col { position: sticky; left: 0; background: var(--card); z-index: 10; min-width: 80px; text-align: left; padding-left: 5px; border-right: 2px solid var(--border); }
+
+        .modal-backdrop { 
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+            z-index: 200; display: flex; align-items: center; justify-content: center; padding: 1rem;
+            opacity: 0; visibility: hidden; transition: all 0.3s;
+        }
+        .modal-backdrop.active { opacity: 1; visibility: visible; }
         
-        .card-premium { background: white; border: 1px solid #e2e8f0; border-radius: 1rem; transition: all 0.2s ease; position: relative; overflow: hidden; }
-        .dark .card-premium { background: #1e293b; border: 1px solid #334155; }
+        #pdf-offscreen { 
+            position: fixed; 
+            left: -9999px; 
+            top: 0; 
+            width: 794px; 
+            background: white !important; 
+            z-index: -1000; 
+            visibility: visible;
+            pointer-events: none;
+            display: block;
+        }
+
+        #selection-toolbar {
+            transform: translate(-50%, 150%);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+        }
+        #selection-toolbar.visible { transform: translate(-50%, 0); display: flex !important; }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 3px; height: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #ffab07; border-radius: 10px; }
+
+        .animate-in { animation: fadeIn 0.2s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         
-        .btn-premium { background: linear-gradient(135deg, #FFCC00 0%, #F5B800 100%); color: #020617; font-weight: 800; border-radius: 0.75rem; transition: all 0.2s; cursor: pointer; border: none; }
-        .btn-premium:hover { filter: brightness(1.05); transform: translateY(-1px); }
-        .btn-premium:active { transform: scale(0.96); }
-
-        .tab-active { color: #FFCC00 !important; border-bottom: 3px solid #FFCC00; background: rgba(255, 204, 0, 0.08); font-weight: 800; }
-        
-        @keyframes spin-custom { to { transform: rotate(360deg); } }
-        .custom-spin { animation: spin-custom 0.8s linear infinite; }
-
-        .custom-scroll::-webkit-scrollbar { height: 4px; width: 4px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .dark .custom-scroll::-webkit-scrollbar-thumb { background: #475569; }
-
-        .bg-grad-gema { background: linear-gradient(135deg, #FFCC00 0%, #F5B800 100%); }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade { animation: fadeIn 0.3s ease-out forwards; }
-
-        .save-indicator { transition: opacity 0.5s; opacity: 0; }
-        .save-active { opacity: 1; }
-        
-        @media print { .no-print { display: none !important; } tr { page-break-inside: avoid; } }
-
-        /* Custom Toast */
-        #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
-        .toast { pointer-events: auto; padding: 12px 20px; border-radius: 12px; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; display: flex; items-center: center; gap: 10px; animation: slideIn 0.3s ease-out forwards; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col pb-20 md:pb-0">
+<body class="overflow-x-hidden select-none">
 
-    <div id="toast-container"></div>
-
-    <!-- Preloader -->
-    <div id="loading-overlay" class="fixed inset-0 bg-slate-100 dark:bg-slate-950 flex items-center justify-center z-[1000] transition-all duration-700 ease-in-out">
-        <div class="flex flex-col items-center">
-            <div class="w-12 h-12 border-4 border-gema/10 border-t-gema rounded-full custom-spin mb-4 shadow-[0_0_15px_rgba(255,204,0,0.3)]"></div>
-            <p class="text-[10px] font-black uppercase tracking-[0.3em] text-gema animate-pulse">Elite Engine v28.5</p>
-            <p class="text-[8px] font-bold uppercase tracking-widest text-slate-400 mt-2">Otimizando Dashboard...</p>
-        </div>
-    </div>
-
-    <!-- Auth Screen -->
-    <div id="auth-screen" class="hidden fixed inset-0 z-[200] bg-slate-100 dark:bg-slate-950 flex items-center justify-center p-4">
-        <div class="w-full max-w-[360px] card-premium p-10 shadow-2xl animate-fade border-2 border-slate-200 dark:border-white/5">
-            <div class="text-center mb-8">
-                <div class="inline-flex bg-grad-gema p-5 rounded-2xl text-slate-950 shadow-lg mb-4">
-                    <i class="fas fa-shield-halved fa-2x"></i>
-                </div>
-                <h2 class="text-2xl font-black text-slate-950 dark:text-white uppercase tracking-tighter">Login Pro</h2>
-                <p class="text-[9px] font-bold text-slate-500 uppercase mt-1 tracking-widest">Acesso Restrito</p>
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="fixed inset-0 z-[5000] bg-[#0f1214] flex items-center justify-center p-4">
+        <div class="w-full max-w-xs glass-card rounded-[2rem] p-8 text-center border-brand/20 shadow-2xl">
+            <div class="w-14 h-14 bg-brand rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl rotate-3">
+                <i data-lucide="shield-lock" class="w-8 h-8 text-base-dark"></i>
             </div>
-            <form id="login-form" class="space-y-4">
-                <div>
-                    <label class="text-[9px] font-black uppercase text-slate-500 ml-1">Utilizador</label>
-                    <input type="text" id="login-user" required class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-xl font-bold" placeholder="admin">
-                </div>
-                <div>
-                    <label class="text-[9px] font-black uppercase text-slate-500 ml-1">Senha</label>
-                    <input type="password" id="login-pass" required class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-xl font-bold" placeholder="1234">
-                </div>
-                <button type="submit" class="btn-premium w-full py-4 text-xs uppercase tracking-widest shadow-xl mt-4">Entrar no Sistema</button>
+            <h2 class="text-xl font-black text-brand uppercase tracking-tighter mb-1">SGS Pro Fusion</h2>
+            <p class="text-[9px] font-bold text-sub uppercase tracking-[0.2em] mb-6">Master Security Access</p>
+            <form id="login-form" onsubmit="App.handleLogin(event)">
+                <input type="password" id="login-pass" placeholder="SENHA" class="w-full py-3 px-4 bg-black/40 border-2 border-white/5 rounded-xl text-center font-black tracking-[0.5em] text-brand focus:border-brand outline-none mb-4">
+                <button type="submit" class="w-full bg-brand text-base-dark font-black py-3 rounded-xl uppercase text-[10px] tracking-widest shadow-lg shadow-brand/20 active:scale-95 transition-all">Entrar</button>
             </form>
         </div>
     </div>
 
-    <!-- App Content -->
-    <div id="app-content" class="hidden flex flex-col min-h-screen">
-        
-        <!-- Navbar -->
-        <nav class="sticky top-0 z-50 glass border-b border-slate-200 dark:border-slate-800 no-print">
-            <div class="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <div class="bg-grad-gema w-8 h-8 rounded-xl flex items-center justify-center text-slate-950 shadow-md">
-                        <i class="fas fa-scroll text-sm"></i>
+    <!-- MAIN INTERFACE -->
+    <div id="main-app" class="hidden opacity-0 transition-opacity duration-500">
+        <!-- Navegação Superior -->
+        <nav class="sticky top-0 z-[110] glass-card border-x-0 border-t-0 bg-opacity-95 backdrop-blur-md h-12">
+            <div class="max-w-6xl mx-auto flex justify-between items-center px-4 h-full">
+                <div class="flex h-full overflow-x-auto no-scrollbar">
+                    <div id="tab-diary" onclick="App.switchTab('diary')" class="nav-tab active">
+                        <i data-lucide="calendar-check" class="w-3.5 h-3.5"></i>
+                        <span>Chamada</span>
                     </div>
-                    <span class="text-lg font-black tracking-tighter text-slate-950 dark:text-white uppercase">
-                        DIÁRIO<span class="text-gema">PRO</span>
-                    </span>
-                    <div id="save-status" class="save-indicator flex items-center gap-1.5 ml-2" title="Guardado automaticamente">
-                        <div class="w-1.5 h-1.5 rounded-full bg-present animate-pulse"></div>
-                        <span class="text-[7px] font-black uppercase tracking-widest text-slate-400">Syncing...</span>
+                    <div id="tab-matrix" onclick="App.switchTab('matrix')" class="nav-tab">
+                        <i data-lucide="grid-3x3" class="w-3.5 h-3.5"></i>
+                        <span>Matriz</span>
+                    </div>
+                    <div id="tab-stats" onclick="App.switchTab('stats')" class="nav-tab">
+                        <i data-lucide="bar-chart-3" class="w-3.5 h-3.5"></i>
+                        <span>Dashboard</span>
+                    </div>
+                    <div id="tab-convert" onclick="App.switchTab('convert')" class="nav-tab">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                        <span>Conversor Master</span>
                     </div>
                 </div>
                 
-                <div class="hidden md:flex h-full items-center gap-1">
-                    <button onclick="switchTab('dashboard')" id="tab-dashboard" class="px-5 h-full text-[10px] font-black uppercase tracking-widest transition-all">Geral</button>
-                    <button onclick="switchTab('attendance')" id="tab-attendance" class="px-5 h-full text-[10px] font-bold uppercase tracking-widest text-slate-500 transition-all">Chamada</button>
-                    <button onclick="switchTab('grades')" id="tab-grades" class="px-5 h-full text-[10px] font-bold uppercase tracking-widest text-slate-500 transition-all">Notas</button>
-                    <button onclick="switchTab('students')" id="tab-students" class="px-5 h-full text-[10px] font-bold uppercase tracking-widest text-slate-500 transition-all">Alunos</button>
-                </div>
-
                 <div class="flex items-center gap-2">
-                    <button onclick="toggleCompactMode()" class="w-9 h-9 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-gema" title="Alternar modo visual">
-                        <i id="compact-icon" class="fas fa-compress text-xs"></i>
-                    </button>
-                    <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-gema">
-                        <i id="theme-icon" class="fas fa-moon text-xs"></i>
-                    </button>
-                    <div class="relative">
-                        <button onclick="toggleSettingsMenu()" class="w-9 h-9 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-gema">
-                            <i class="fas fa-cog text-xs"></i>
-                        </button>
-                        <div id="settings-dropdown" class="hidden absolute top-12 right-0 w-64 bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl py-2 z-50 animate-fade text-[11px] font-bold">
-                            <button onclick="openSettingsModal('school')" class="w-full text-left px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-900 flex items-center gap-3">
-                                <i class="fas fa-building text-gema w-4"></i> Instituição
-                            </button>
-                            <button onclick="openSettingsModal('curriculum')" class="w-full text-left px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-900 flex items-center gap-3">
-                                <i class="fas fa-layer-group text-gema w-4"></i> Matriz Curricular
-                            </button>
-                            <button onclick="openSettingsModal('profile')" class="w-full text-left px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-900 flex items-center gap-3">
-                                <i class="fas fa-user-edit text-gema w-4"></i> Perfil Docente
-                            </button>
-                            <div class="h-px bg-slate-100 dark:bg-slate-800 my-1 mx-4"></div>
-                            <button onclick="handleBackupData()" class="w-full text-left px-5 py-3 text-blue-500 uppercase text-[9px]">
-                                <i class="fas fa-download mr-2"></i> Exportar Dados JSON
-                            </button>
-                            <button onclick="handleLogout()" class="w-full text-left px-5 py-3 text-red-500 uppercase text-[10px] font-black">
-                                <i class="fas fa-power-off mr-2"></i> Encerrar Sessão
-                            </button>
-                        </div>
+                    <div class="hidden md:flex flex-col text-right mr-2 border-r border-border pr-3">
+                        <span id="liveClock" class="text-xs font-black text-brand leading-none">00:00:00</span>
+                        <span id="liveDate" class="text-[8px] font-bold text-sub uppercase">--/--/--</span>
                     </div>
+                    <select id="class-selector" onchange="App.setActiveClass(this.value)" class="bg-brand text-base-dark text-[9px] font-black uppercase rounded-lg px-2 py-1 outline-none shadow-sm cursor-pointer"></select>
+                    <button onclick="App.toggleTheme()" class="p-1.5 glass-card rounded-lg hover:border-brand">
+                        <i id="themeIcon" data-lucide="moon" class="w-3.5 h-3.5 text-brand"></i>
+                    </button>
+                    <button onclick="App.logout()" class="p-1.5 glass-card rounded-lg border-accent-danger/20 text-accent-danger hover:bg-accent-danger/10">
+                        <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                    </button>
                 </div>
             </div>
         </nav>
 
-        <!-- Main Content -->
-        <main class="flex-grow max-w-7xl mx-auto px-4 py-6 w-full space-y-4 animate-fade">
+        <main class="max-w-6xl mx-auto px-4 py-4 mb-24">
             
-            <!-- Context Header -->
-            <div class="card-premium p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
-                <div class="flex items-center gap-4 w-full">
-                    <div class="w-12 h-12 rounded-2xl bg-gema/10 text-gema flex items-center justify-center text-xl shadow-inner">
-                        <i class="fas fa-folder-tree"></i>
+            <!-- SECTION 1: CHAMADA -->
+            <section id="view-diary" class="space-y-4 animate-in">
+                <div class="grid grid-cols-4 gap-2">
+                    <div class="glass-card p-3 rounded-xl border-l-2 border-brand">
+                        <span class="text-[8px] font-black text-sub uppercase block">Total</span>
+                        <h3 class="text-lg font-black" id="dash-total">0</h3>
                     </div>
-                    <div class="overflow-hidden">
-                        <div class="flex items-center gap-2">
-                            <h1 id="active-class-title" class="text-lg font-black text-slate-950 dark:text-white uppercase tracking-tighter truncate">Sincronizando...</h1>
-                            <button onclick="openModal('modal-manage-classes')" class="text-slate-400 hover:text-gema" title="Mudar Turma">
-                                <i class="fas fa-exchange-alt text-xs"></i>
-                            </button>
-                        </div>
-                        <p id="school-name-display" class="text-[9px] font-bold text-slate-500 uppercase tracking-widest truncate"></p>
+                    <div class="glass-card p-3 rounded-xl border-l-2 border-accent-green">
+                        <span class="text-[8px] font-black text-accent-green uppercase block">Presentes</span>
+                        <h3 class="text-lg font-black" id="dash-pres">0</h3>
+                    </div>
+                    <div class="glass-card p-3 rounded-xl border-l-2 border-accent-danger">
+                        <span class="text-[8px] font-black text-accent-danger uppercase block">Faltas</span>
+                        <h3 class="text-lg font-black" id="dash-abs">0</h3>
+                    </div>
+                    <div class="glass-card p-3 rounded-xl border-l-2 border-accent-blue">
+                        <span class="text-[8px] font-black text-accent-blue uppercase block">Freq.</span>
+                        <h3 class="text-lg font-black" id="dash-freq">0%</h3>
                     </div>
                 </div>
-                <div id="header-actions" class="flex gap-2"></div>
-            </div>
 
-            <!-- Tab Content -->
-            <div id="tab-content" class="w-full">
-                
-                <!-- View: Dashboard -->
-                <section id="view-dashboard" class="space-y-4 animate-fade">
-                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div class="card-premium p-5 border-l-4 border-gema shadow-sm flex justify-between items-center">
-                            <div>
-                                <span class="text-[9px] font-black text-slate-500 uppercase block mb-1">Total Alunos</span>
-                                <p id="dash-total-students" class="text-3xl font-black text-slate-950 dark:text-white">0</p>
-                            </div>
-                            <div class="w-12 h-12 shrink-0"><canvas id="dash-chart-total"></canvas></div>
-                        </div>
-                        <div class="card-premium p-5 border-l-4 border-present shadow-sm flex justify-between items-center">
-                            <div>
-                                <span class="text-[9px] font-black text-slate-500 uppercase block mb-1">Aprovados</span>
-                                <p id="dash-approved" class="text-3xl font-black text-present">0</p>
-                            </div>
-                            <div class="w-12 h-12 shrink-0"><canvas id="dash-chart-app"></canvas></div>
-                        </div>
-                        <div class="card-premium p-5 border-l-4 border-amber-500 shadow-sm flex justify-between items-center">
-                            <div>
-                                <span class="text-[9px] font-black text-slate-500 uppercase block mb-1">Atenção</span>
-                                <p id="dash-warning" class="text-3xl font-black text-amber-500">0</p>
-                            </div>
-                            <div class="w-12 h-12 shrink-0"><canvas id="dash-chart-warn"></canvas></div>
-                        </div>
-                        <div class="card-premium p-5 border-l-4 border-absent shadow-sm flex justify-between items-center">
-                            <div>
-                                <span class="text-[9px] font-black text-slate-500 uppercase block mb-1">Retidos</span>
-                                <p id="dash-failed" class="text-3xl font-black text-absent">0</p>
-                            </div>
-                            <div class="w-12 h-12 shrink-0"><canvas id="dash-chart-fail"></canvas></div>
+                <div class="flex flex-col sm:flex-row gap-2 justify-between items-center bg-black/10 p-2 rounded-2xl border border-white/5">
+                    <div class="flex items-center gap-2 overflow-x-auto no-scrollbar w-full sm:w-auto">
+                        <input type="date" id="current-date" onchange="App.render()" class="bg-base-panel border border-border rounded-lg px-2 py-1 font-black text-brand outline-none text-[10px]">
+                        <button onclick="App.massStatus('P')" class="px-3 py-1.5 bg-accent-green/10 text-accent-green border border-accent-green/20 rounded-lg font-black uppercase text-[8px] hover:bg-accent-green hover:text-white transition-all whitespace-nowrap">Marcar Todos (P)</button>
+                        <button onclick="App.massStatus('')" class="px-3 py-1.5 glass-card border-white/10 rounded-lg font-black uppercase text-[8px] hover:bg-white/10 transition-all whitespace-nowrap">Limpar Chamada</button>
+                    </div>
+                    <div class="flex gap-1.5 w-full sm:w-auto justify-end">
+                        <button onclick="App.enableAddMode()" class="flex-1 sm:flex-none px-4 py-2 bg-brand text-base-dark rounded-xl font-black uppercase text-[9px] shadow-lg flex items-center justify-center gap-1.5 active:scale-95 transition-all">
+                            <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> NOVO ALUNO
+                        </button>
+                        <button onclick="App.openModal('modal-turmas')" class="p-2 glass-card rounded-lg text-brand" title="Gerenciar Turmas"><i data-lucide="settings" class="w-4 h-4"></i></button>
+                        <button onclick="App.exportDiaryPDF()" class="p-2 glass-card rounded-lg text-accent-danger" title="Exportar Relatório PDF"><i data-lucide="printer" class="w-4 h-4"></i></button>
+                        <button onclick="App.confirmAction('LIMPAR TURMA', 'Remover todos os alunos e histórico desta turma?', () => App.clearActiveStudents())" class="p-2 glass-card rounded-lg text-accent-danger" title="Limpar Turma"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
+                </div>
+
+                <div class="flex flex-col md:flex-row gap-2">
+                    <div class="relative flex-1">
+                        <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 opacity-30"></i>
+                        <input type="text" id="student-search" oninput="App.render()" placeholder="BUSCAR ESTUDANTE..." class="w-full glass-card py-3 pl-10 pr-4 rounded-xl outline-none focus:ring-2 focus:ring-brand/10 transition-all text-[10px] font-bold uppercase">
+                    </div>
+                    <div class="flex gap-1">
+                        <button onclick="App.exportCSV()" class="px-4 py-3 glass-card rounded-xl text-[9px] font-black uppercase hover:bg-accent-blue/10 flex items-center gap-2"><i data-lucide="download" class="w-3.5 h-3.5"></i> EXPORTAR CSV</button>
+                        <label class="px-4 py-3 glass-card rounded-xl text-[9px] font-black uppercase hover:bg-accent-blue/10 flex items-center gap-2 cursor-pointer">
+                            <i data-lucide="upload" class="w-3.5 h-3.5"></i> IMPORTAR CSV
+                            <input type="file" onchange="App.importCSV(this)" class="hidden" accept=".csv">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-2xl overflow-hidden shadow-2xl">
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left border-collapse table-fixed min-w-[600px]">
+                            <thead class="bg-black/20 dark:bg-white/5 border-b border-border">
+                                <tr class="text-[9px] font-black uppercase text-sub">
+                                    <th class="p-3 w-10 text-center"><input type="checkbox" id="select-all" onchange="App.toggleSelectAll(this.checked)" class="accent-brand"></th>
+                                    <th class="p-3 w-12 text-center border-r border-border/30">Nº</th>
+                                    <th class="p-3">Nome do Estudante</th>
+                                    <th class="p-3 w-32 text-center">Status</th>
+                                    <th class="p-3 w-16 text-center">Ações</th>
+                                 </tr>
+                            </thead>
+                            <tbody id="diary-body" class="divide-y divide-border/20"></tbody>
+                        </table>
+                    </div>
+                    <div id="diary-empty" class="hidden p-12 text-center">
+                        <i data-lucide="users" class="w-12 h-12 mx-auto opacity-10 mb-4 text-brand"></i>
+                        <p class="text-[10px] font-black uppercase tracking-widest opacity-30">Nenhum aluno cadastrado nesta turma</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 2: MATRIZ -->
+            <section id="view-matrix" class="hidden space-y-4 animate-in">
+                <div class="flex items-center justify-between bg-base-panel p-3 rounded-2xl border border-border">
+                    <div class="flex items-center gap-4">
+                        <h2 class="text-xs font-black uppercase text-brand tracking-tighter">Matriz Mensal de Frequência</h2>
+                        <div class="flex items-center gap-2 bg-black/20 rounded-full px-3 py-1 border border-white/5">
+                            <button onclick="App.changeMatrixMonth(-1)" class="text-brand hover:scale-125 transition-all"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                            <span id="matrix-month-label" class="text-[9px] font-black uppercase min-w-[120px] text-center">---</span>
+                            <button onclick="App.changeMatrixMonth(1)" class="text-brand hover:scale-125 transition-all"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
                         </div>
                     </div>
-                    
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div class="card-premium p-6 h-[400px] flex flex-col chart-container">
-                            <h3 class="text-[10px] font-black uppercase text-slate-500 mb-6 tracking-widest flex items-center gap-2">
-                                <i class="fas fa-chart-column text-gema"></i> Rendimento por Matéria
-                            </h3>
-                            <div class="flex-grow relative overflow-hidden"><canvas id="chart-performance"></canvas></div>
-                        </div>
-                        <div class="card-premium p-6 h-[400px] flex flex-col chart-container">
-                            <h3 class="text-[10px] font-black uppercase text-slate-500 mb-6 tracking-widest flex items-center gap-2">
-                                <i class="fas fa-chart-pie text-present"></i> Status Académico
-                            </h3>
-                            <div class="flex-grow relative overflow-hidden"><canvas id="chart-status"></canvas></div>
-                        </div>
-                        <div class="card-premium p-6 h-[400px] flex flex-col chart-container">
-                            <h3 class="text-[10px] font-black uppercase text-slate-500 mb-6 tracking-widest flex items-center gap-2">
-                                <i class="fas fa-chart-line text-justified"></i> Engajamento (Frequência)
-                            </h3>
-                            <div class="flex-grow relative max-h-[160px] mb-4"><canvas id="chart-engagement"></canvas></div>
-                            <div id="engage-stats-panel" class="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                                <div class="flex justify-between items-center text-[10px] font-black uppercase">
-                                    <span class="text-present">Presenças</span>
-                                    <span id="stat-p-val" class="text-slate-900 dark:text-white">0 (0%)</span>
-                                </div>
-                                <div class="flex justify-between items-center text-[10px] font-black uppercase">
-                                    <span class="text-absent">Faltas</span>
-                                    <span id="stat-f-val" class="text-slate-900 dark:text-white">0 (0%)</span>
-                                </div>
-                                <div class="flex justify-between items-center text-[10px] font-black uppercase">
-                                    <span class="text-justified">Justificadas</span>
-                                    <span id="stat-j-val" class="text-slate-900 dark:text-white">0 (0%)</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+                </div>
+                <div class="glass-card rounded-2xl overflow-hidden shadow-2xl bg-black/20">
+                    <div id="matrix-container" class="overflow-auto custom-scrollbar max-h-[60vh]"></div>
+                </div>
+            </section>
 
-                <!-- View: Attendance -->
-                <section id="view-attendance" class="hidden space-y-4 animate-fade">
-                    <div class="card-premium overflow-hidden shadow-sm">
-                        <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex flex-col md:flex-row gap-4 items-center justify-between">
-                            <div class="flex items-center gap-3 w-full md:w-auto">
-                                <label class="text-[10px] font-black uppercase text-slate-500">Data:</label>
-                                <input type="date" id="attendance-date" class="bg-white dark:bg-slate-800 border dark:border-slate-700 px-3 py-2 rounded-xl font-bold text-xs" onchange="renderAttendance()">
-                                <button onclick="handleExportDailyAttendancePdf()" class="bg-slate-900 dark:bg-white text-white dark:text-slate-950 px-4 py-2 rounded-xl text-[10px] font-black uppercase shadow-lg">
-                                    <i class="fas fa-file-pdf mr-2"></i>PDF Chamada
-                                </button>
-                            </div>
-                            <div class="flex gap-2 w-full md:w-auto">
-                                <button onclick="markAllAttendance('P')" class="flex-1 md:px-6 btn-premium py-3 text-[10px] uppercase shadow-md">Presença Geral</button>
-                                <button onclick="markAllAttendance('')" class="flex-1 md:px-6 bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl py-3 text-[10px] font-black uppercase">Limpar</button>
-                            </div>
+            <!-- SECTION 3: DASHBOARD -->
+            <section id="view-stats" class="hidden space-y-4 animate-in">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="glass-card p-8 rounded-[2rem] flex flex-col items-center justify-center text-center">
+                        <h3 class="text-[10px] font-black uppercase text-brand mb-8 tracking-widest">Desempenho Geral da Turma</h3>
+                        <div class="w-full max-w-[200px] aspect-square relative">
+                            <canvas id="chart-attendance"></canvas>
                         </div>
-                        <div class="overflow-x-auto custom-scroll">
-                            <table class="w-full">
-                                <thead class="bg-slate-100 dark:bg-slate-900/50 text-[9px] font-black uppercase text-slate-500 border-b dark:border-slate-800">
-                                    <tr>
-                                        <th class="px-6 py-4 text-center w-20">Nº</th>
-                                        <th class="px-6 py-4 text-left">Académico</th>
-                                        <th class="px-6 py-4 text-center w-64">Status Presença</th>
-                                        <th class="px-6 py-4 text-right w-32">Frequência</th>
+                        <div id="chart-legend" class="grid grid-cols-3 gap-6 mt-8 w-full text-center"></div>
+                    </div>
+                    <div class="glass-card p-4 rounded-[2rem] overflow-hidden flex flex-col">
+                        <h3 class="text-[10px] font-black uppercase text-brand mb-4 px-2 tracking-widest">Assiduidade Individual (%)</h3>
+                        <div class="flex-1 overflow-y-auto max-h-[350px] custom-scrollbar border border-white/5 rounded-xl bg-black/20">
+                            <table class="w-full text-left text-[9px] border-collapse">
+                                <thead class="sticky top-0 bg-base-panel z-10 border-b border-border">
+                                    <tr class="font-black text-sub">
+                                        <th class="p-3">ALUNO</th>
+                                        <th class="p-3 text-center">P</th>
+                                        <th class="p-3 text-center">F</th>
+                                        <th class="p-3 text-center">MÉDIA</th>
                                     </tr>
                                 </thead>
-                                <tbody id="att-table-body" class="divide-y divide-slate-100 dark:divide-slate-800 font-bold text-[11px]"></tbody>
+                                <tbody id="stats-body" class="divide-y divide-border/10"></tbody>
                             </table>
                         </div>
                     </div>
-                </section>
+                </div>
+            </section>
 
-                <!-- View: Grades -->
-                <section id="view-grades" class="hidden space-y-4 animate-fade">
-                    <div class="card-premium overflow-hidden shadow-sm">
-                        <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <select id="select-discipline" onchange="renderGrades()" class="w-full bg-white dark:bg-slate-800 border dark:border-slate-700 p-3 rounded-xl font-bold text-xs" title="Selecionar disciplina"></select>
-                            <select id="select-period" onchange="renderGrades()" class="w-full bg-white dark:bg-slate-800 border dark:border-slate-700 p-3 rounded-xl font-bold text-xs">
-                                <option value="1">1º Bimestre</option>
-                                <option value="2">2º Bimestre</option>
-                                <option value="3">3º Bimestre</option>
-                                <option value="4">4º Bimestre</option>
-                                <option value="consolidated" class="text-gema font-black">RESULTADO FINAL (Anual)</option>
-                            </select>
+            <!-- SECTION 4: CONVERSOR -->
+            <section id="view-convert" class="hidden space-y-4 animate-in">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div class="space-y-4">
+                        <div id="drop-zone" onclick="document.getElementById('file-input').click()" 
+                             class="group border-2 border-dashed border-white/10 hover:border-brand rounded-3xl p-12 flex flex-col items-center justify-center cursor-pointer transition-all bg-black/5 hover:bg-brand/5">
+                            <i data-lucide="file-up" class="w-12 h-12 mb-3 opacity-10 group-hover:text-brand transition-all"></i>
+                            <p class="text-[10px] font-black uppercase text-brand">Selecionar Ficheiro</p>
+                            <p class="text-[8px] opacity-40 uppercase font-bold mt-1">PDF • CSV • TXT</p>
+                            <input type="file" id="file-input" class="hidden" onchange="Converter.handleFile(this.files[0])">
                         </div>
-                        <div class="overflow-x-auto custom-scroll">
-                            <table class="w-full">
-                                <thead id="grades-table-head" class="bg-slate-100 dark:bg-slate-900/50 text-[9px] font-black uppercase text-slate-500 border-b dark:border-slate-800"></thead>
-                                <tbody id="grades-table-body" class="divide-y divide-slate-100 dark:divide-slate-800 font-bold text-[11px]"></tbody>
-                            </table>
-                        </div>
+                        <textarea id="manual-input" oninput="Converter.updateRaw(this.value)"
+                              class="w-full h-56 p-4 text-[10px] font-bold rounded-2xl glass-card bg-transparent focus:ring-2 focus:ring-brand/10 outline-none transition-all custom-scrollbar"
+                              placeholder="Ou cole os dados brutos aqui..."></textarea>
                     </div>
-                </section>
 
-                <!-- View: Students -->
-                <section id="view-students" class="hidden space-y-4 animate-fade">
-                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                        <div class="lg:col-span-3">
-                            <div class="card-premium overflow-hidden flex flex-col min-h-[500px] shadow-sm">
-                                <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex flex-col md:flex-row gap-4 items-center justify-between">
-                                    <div class="flex gap-2 w-full md:w-auto">
-                                        <input type="text" id="search-students-list" oninput="renderStudentsTab()" placeholder="Filtrar por nome..." class="flex-grow bg-white dark:bg-slate-800 border dark:border-slate-700 px-4 py-2.5 rounded-xl font-bold text-xs">
-                                        <button id="btn-bulk-delete" onclick="handleBulkDelete()" class="hidden bg-red-600 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase shadow-lg">
-                                            <i class="fas fa-trash-can mr-2"></i>Eliminar Seleção
-                                        </button>
-                                    </div>
-                                    <button onclick="handleExportStudentListPdf()" class="btn-premium px-6 py-2.5 text-[10px] uppercase shadow-md">
-                                        <i class="fas fa-file-signature mr-2"></i>Lista de Assinatura
-                                    </button>
+                    <div id="convert-preview" class="hidden flex flex-col gap-4">
+                        <div class="glass-card rounded-[2rem] p-6 flex flex-col h-full bg-black/30 border-t-2 border-t-brand">
+                            <div class="flex justify-between items-center mb-4">
+                                <div class="flex items-center gap-2">
+                                    <h3 class="text-[10px] font-black uppercase text-brand tracking-widest">Monitor de Extração</h3>
+                                    <span id="importCountTag" class="text-[8px] bg-brand text-base-dark px-3 py-0.5 rounded-full font-black">0</span>
                                 </div>
-                                <div class="overflow-x-auto flex-grow custom-scroll">
-                                    <table class="w-full">
-                                        <thead class="bg-slate-100 dark:bg-slate-900/50 text-[9px] font-black uppercase text-slate-500 border-b dark:border-slate-800">
-                                            <tr>
-                                                <th class="px-6 py-4 text-center w-16"><input type="checkbox" id="select-all-students" onchange="toggleSelectAll(this)"></th>
-                                                <th class="px-6 py-4 text-left">Académico / Registro</th>
-                                                <th class="px-6 py-4 text-right w-48">Ações Analíticas</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="students-table-body" class="divide-y divide-slate-100 dark:divide-slate-800"></tbody>
-                                    </table>
-                                </div>
+                                <button onclick="Converter.reset()" class="text-[9px] font-black text-accent-danger uppercase underline">Limpar</button>
                             </div>
-                        </div>
-                        <div class="space-y-4">
-                            <div class="card-premium p-6 shadow-sm">
-                                <h3 class="text-[11px] font-black mb-6 uppercase tracking-widest text-slate-500">Gestão</h3>
-                                <div class="flex flex-col gap-3">
-                                    <button onclick="handleAddStudent()" class="btn-premium w-full py-4 text-[10px] uppercase tracking-widest shadow-lg">
-                                        <i class="fas fa-user-plus mr-2"></i>Novo Académico
-                                    </button>
-                                    <div class="h-px bg-slate-100 dark:bg-slate-800 my-2"></div>
-                                    <button onclick="handleBulkImportPrompt()" class="w-full py-4 bg-slate-50 dark:bg-slate-900 border dark:border-slate-700 rounded-xl text-[10px] font-black uppercase hover:border-gema transition-all">
-                                        <i class="fas fa-paste mr-2"></i>Colar Texto
-                                    </button>
-                                    <button onclick="getEl('csv-file-input').click()" class="w-full py-4 bg-slate-50 dark:bg-slate-900 border dark:border-slate-700 rounded-xl text-[10px] font-black uppercase hover:border-gema transition-all">
-                                        <i class="fas fa-file-csv mr-2"></i>Subir CSV
-                                    </button>
-                                    <input type="file" id="csv-file-input" accept=".csv" class="hidden" onchange="handleCsvImport(this)">
-                                </div>
+                            
+                            <div class="flex-1 overflow-auto custom-scrollbar rounded-xl border border-white/5 bg-black/20 mb-6 min-h-[200px]">
+                                <table class="w-full text-left border-collapse text-[9px] font-bold">
+                                    <thead class="bg-black/50 sticky top-0">
+                                        <tr id="preview-header"></tr>
+                                    </thead>
+                                    <tbody id="preview-body" class="divide-y divide-white/5 opacity-80"></tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                <button onclick="Converter.sync()" class="col-span-2 md:col-span-4 py-4 bg-accent-green text-white rounded-xl text-[10px] font-black uppercase shadow-lg flex items-center justify-center gap-2 mb-2 active:scale-95 transition-all">
+                                    <i data-lucide="zap" class="w-4 h-4"></i> Sincronizar com Diário
+                                </button>
+                                <button onclick="Converter.exportExt('csv')" class="py-3 glass-card rounded-xl text-[9px] font-black uppercase hover:bg-brand hover:text-base-dark">CSV</button>
+                                <button onclick="Converter.exportExt('json')" class="py-3 glass-card rounded-xl text-[9px] font-black uppercase hover:bg-brand hover:text-base-dark">JSON</button>
+                                <button onclick="Converter.exportExt('pdf')" class="py-3 glass-card rounded-xl text-[9px] font-black uppercase hover:bg-brand hover:text-base-dark">PDF</button>
+                                <button onclick="Converter.exportExt('txt')" class="py-3 glass-card rounded-xl text-[9px] font-black uppercase hover:bg-brand hover:text-base-dark">TXT</button>
                             </div>
                         </div>
                     </div>
-                </section>
-            </div>
+                </div>
+            </section>
         </main>
 
-        <!-- Bottom Navigation Mobile -->
-        <div class="fixed bottom-0 left-0 right-0 glass border-t border-slate-200 dark:border-slate-800 z-[100] md:hidden no-print">
-            <div class="flex h-16 items-center">
-                <button onclick="switchTab('dashboard')" class="flex-1 flex flex-col items-center gap-1" id="mob-dashboard-btn"><i class="fas fa-house text-sm"></i><span class="text-[8px] font-black uppercase">Geral</span></button>
-                <button onclick="switchTab('attendance')" class="flex-1 flex flex-col items-center gap-1 text-slate-500" id="mob-attendance-btn"><i class="fas fa-calendar-check text-sm"></i><span class="text-[8px] font-black uppercase">Chamada</span></button>
-                <button onclick="switchTab('grades')" class="flex-1 flex flex-col items-center gap-1 text-slate-500" id="mob-grades-btn"><i class="fas fa-award text-sm"></i><span class="text-[8px] font-black uppercase">Notas</span></button>
-                <button onclick="switchTab('students')" class="flex-1 flex flex-col items-center gap-1 text-slate-500" id="mob-students-btn"><i class="fas fa-user-group text-sm"></i><span class="text-[8px] font-black uppercase">Alunos</span></button>
+        <!-- Selection Toolbar -->
+        <div id="selection-toolbar" class="hidden fixed bottom-6 left-1/2 glass-card bg-brand text-base-dark px-8 py-4 rounded-3xl shadow-2xl z-[150] items-center gap-10 border-none min-w-[360px]">
+            <div class="flex flex-col text-center">
+                <span id="sel-count" class="text-2xl font-black leading-none">0</span>
+                <span class="text-[8px] font-black uppercase opacity-70 tracking-widest">Marcados</span>
             </div>
+            <div class="h-10 w-[1.5px] bg-base-dark/10"></div>
+            <div class="flex gap-3">
+                <button onclick="App.batchAction('P')" class="p-3.5 bg-base-dark/5 hover:bg-base-dark/15 rounded-2xl transition-all" title="Presente"><i data-lucide="user-check" class="w-6 h-6"></i></button>
+                <button onclick="App.batchAction('F')" class="p-3.5 bg-base-dark/5 hover:bg-base-dark/15 rounded-2xl transition-all" title="Falta"><i data-lucide="user-x" class="w-6 h-6"></i></button>
+                <button onclick="App.batchDeleteSelected()" class="p-3.5 bg-accent-danger text-white hover:brightness-110 rounded-2xl transition-all shadow-lg" title="Excluir"><i data-lucide="trash-2" class="w-6 h-6"></i></button>
+            </div>
+            <button onclick="App.clearSelection()" class="p-1.5 hover:bg-base-dark/10 rounded-full ml-4"><i data-lucide="x" class="w-6 h-6"></i></button>
         </div>
     </div>
 
     <!-- Modals -->
+    <div id="modal-turmas" class="modal-backdrop">
+        <div class="glass-card p-6 rounded-[2.5rem] max-w-sm w-full animate-in shadow-3xl">
+            <h3 class="text-sm font-black uppercase text-brand mb-6 text-center tracking-widest">Gestão de Unidades</h3>
+            <div class="flex gap-2 mb-6">
+                <input type="text" id="new-class-name" placeholder="NOME DA NOVA TURMA" class="flex-grow bg-black/20 border border-border rounded-xl px-4 py-3 text-[10px] font-bold outline-none focus:border-brand uppercase">
+                <button onclick="App.addClass()" class="bg-brand text-base-dark px-6 rounded-xl font-black transition-all shadow-lg shadow-brand/20">+</button>
+            </div>
+            <div id="class-list" class="space-y-2 overflow-y-auto max-h-[220px] custom-scrollbar pr-2"></div>
+            <div class="mt-8 pt-4 border-t border-border flex gap-2">
+                <button onclick="App.openModal('modal-backup')" class="flex-1 py-3 glass-card rounded-xl text-[9px] font-black uppercase hover:bg-brand/5">Segurança & Backup</button>
+                <button onclick="App.closeModal()" class="flex-1 py-3 bg-white/5 rounded-xl text-[9px] font-black uppercase">Fechar</button>
+            </div>
+        </div>
+    </div>
 
-    <!-- Modal Input/Action -->
-    <div id="modal-input-action" class="hidden fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-        <div class="bg-white dark:bg-darkCard w-full max-w-[340px] rounded-[2.5rem] shadow-2xl animate-fade p-8 text-center space-y-6">
-            <div id="action-icon-container" class="inline-flex w-16 h-16 rounded-3xl items-center justify-center bg-grad-gema text-slate-950 shadow-lg mx-auto">
-                <i id="action-icon" class="fas fa-question text-xl"></i>
+    <div id="modal-backup" class="modal-backdrop">
+        <div class="glass-card p-8 rounded-[2.5rem] max-w-xs w-full text-center shadow-3xl text-fg">
+            <h3 class="text-sm font-black uppercase text-brand mb-4">Exportar Base de Dados</h3>
+            <div class="flex flex-col gap-3">
+                <button onclick="App.exportBackup()" class="w-full py-4 bg-brand text-base-dark rounded-2xl font-black uppercase text-[10px] shadow-xl hover:scale-105 transition-all">Baixar Backup .JSON</button>
+                <label class="w-full py-4 bg-white/5 rounded-2xl font-black uppercase text-[10px] cursor-pointer hover:bg-white/10 transition-all border border-white/5">
+                    Restaurar do Arquivo
+                    <input type="file" onchange="App.importBackup(this)" class="hidden" accept=".json">
+                </label>
+                <button onclick="App.closeModal()" class="mt-4 text-[9px] font-black opacity-30 uppercase hover:opacity-100 transition-opacity">Cancelar Operação</button>
             </div>
-            <div>
-                <h3 id="action-title" class="text-xl font-black text-slate-950 dark:text-white uppercase tracking-tighter">Confirmar</h3>
-                <p id="action-desc" class="text-[11px] font-bold text-slate-500 uppercase leading-tight mt-2"></p>
+        </div>
+    </div>
+
+    <div id="modal-confirm" class="modal-backdrop">
+        <div class="glass-card p-8 rounded-[2.5rem] max-w-sm w-full text-center shadow-3xl animate-in text-fg">
+            <div class="w-14 h-14 bg-accent-danger/10 text-accent-danger rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="alert-triangle" class="w-8 h-8"></i>
             </div>
-            <div id="action-input-container" class="hidden">
-                <input type="text" id="action-input-field" class="w-full bg-slate-50 dark:bg-slate-900 border-none p-4 rounded-2xl font-bold text-sm text-center focus:ring-2 focus:ring-gema text-slate-950 dark:text-white">
-            </div>
+            <h2 id="confirm-title" class="text-lg font-black text-brand uppercase mb-2">Atenção</h2>
+            <p id="confirm-desc" class="text-[11px] font-bold opacity-60 mb-8 leading-relaxed"></p>
             <div class="flex gap-3">
-                <button onclick="closeModal('modal-input-action')" class="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-2xl text-[10px] font-black uppercase tracking-widest">Cancelar</button>
-                <button id="btn-action-confirm" class="flex-1 py-4 btn-premium rounded-2xl text-[10px] font-black uppercase shadow-lg">Confirmar</button>
+                <button onclick="App.closeModal()" class="flex-1 py-3.5 glass-card rounded-2xl text-[10px] font-black uppercase">Cancelar</button>
+                <button id="confirm-yes" class="flex-1 py-3.5 bg-accent-danger text-white rounded-2xl text-[10px] font-black uppercase shadow-lg">Confirmar</button>
             </div>
         </div>
     </div>
 
-    <!-- Turmas Modal -->
-    <div id="modal-manage-classes" class="hidden fixed inset-0 z-[900] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm">
-        <div class="bg-white dark:bg-darkCard w-full max-w-[380px] rounded-[2rem] shadow-2xl overflow-hidden animate-fade">
-            <div class="p-8 bg-grad-gema text-slate-950">
-                <div class="flex justify-between items-center mb-6"><h3 class="text-sm font-black uppercase tracking-widest">Matriz de Turmas</h3><button onclick="closeModal('modal-manage-classes')"><i class="fas fa-times"></i></button></div>
-                <div class="flex gap-2">
-                    <input type="text" id="new-class-input" placeholder="Nova Turma..." class="flex-grow bg-white/40 border-none px-4 py-3.5 rounded-xl font-bold text-[11px] outline-none placeholder:text-black/30">
-                    <button onclick="handleAddClass()" class="bg-slate-950 text-white px-5 rounded-xl font-black text-[10px] uppercase shadow-lg">Criar</button>
-                </div>
-            </div>
-            <div id="class-list-container" class="p-6 space-y-3 max-h-80 overflow-y-auto custom-scroll"></div>
-        </div>
+    <div id="loading-overlay" class="fixed inset-0 bg-base-dark/95 backdrop-blur-md hidden flex flex-col items-center justify-center z-[10000]">
+        <div class="w-12 h-12 border-4 border-brand/20 border-t-brand rounded-full animate-spin mb-4"></div>
+        <p id="loading-msg" class="text-[9px] font-black uppercase tracking-[0.3em] text-brand">A Processar Engine Fusion...</p>
     </div>
 
-    <!-- Settings Modal -->
-    <div id="modal-settings" class="hidden fixed inset-0 z-[900] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm">
-        <div class="bg-white dark:bg-darkCard w-full max-w-[500px] rounded-[2rem] shadow-2xl overflow-hidden animate-fade">
-            <div class="p-6 border-b flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50">
-                <h3 class="text-xs font-black uppercase tracking-widest text-slate-500">Configurações Elite</h3>
-                <button onclick="closeModal('modal-settings')" class="text-slate-400"><i class="fas fa-times"></i></button>
-            </div>
-            
-            <div class="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scroll">
-                <!-- Section: School -->
-                <div id="set-section-school" class="space-y-4">
-                    <h4 class="text-[10px] font-black text-gema uppercase">Dados da Instituição</h4>
-                    <div>
-                        <label class="text-[9px] font-black uppercase text-slate-400 block mb-1">Nome da Escola</label>
-                        <input type="text" id="set-school-name" class="w-full bg-slate-50 dark:bg-slate-900 border dark:border-slate-800 p-3 rounded-xl font-bold text-xs">
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="text-[9px] font-black uppercase text-slate-400 block mb-1">Média Aprovação</label>
-                            <input type="number" id="set-media-pass" step="0.1" class="w-full bg-slate-50 dark:bg-slate-900 border dark:border-slate-800 p-3 rounded-xl font-bold text-xs">
-                        </div>
-                        <div>
-                            <label class="text-[9px] font-black uppercase text-slate-400 block mb-1">Total Aulas</label>
-                            <input type="number" id="set-total-lessons" class="w-full bg-slate-50 dark:bg-slate-900 border dark:border-slate-800 p-3 rounded-xl font-bold text-xs">
-                        </div>
-                    </div>
-                    <button onclick="saveGlobalSettings()" class="btn-premium w-full py-3 text-[10px] uppercase">Salvar Dados</button>
+    <!-- PDF Template Offscreen (still used for diary PDF) -->
+    <div id="pdf-offscreen">
+        <div id="pdfCaptureArea" style="padding: 40px; background: white !important; color: black !important; min-height: 1120px; font-family: sans-serif;">
+            <div style="border-bottom: 5px solid #ffab07; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end;">
+                <div style="text-align: left;">
+                    <h1 id="pdf-title-tpl" style="margin: 0; color: #ffab07 !important; font-size: 26px; font-weight: 900; text-transform: uppercase;">RELATÓRIO</h1>
+                    <p style="margin: 5px 0 0 0; font-size: 11px; color: #666 !important; font-weight: 800; text-transform: uppercase;">SGS Platinum Master Fusion Edition</p>
                 </div>
-
-                <!-- Section: Curriculum -->
-                <div id="set-section-curriculum" class="hidden space-y-4">
-                    <h4 class="text-[10px] font-black text-gema uppercase">Disciplinas Ativas</h4>
-                    <div id="set-disc-tags" class="flex flex-wrap gap-2"></div>
-                    <div class="flex gap-2">
-                        <input type="text" id="new-disc-name" placeholder="Nome da Disciplina..." class="flex-grow bg-slate-50 dark:bg-slate-900 border dark:border-slate-800 p-3 rounded-xl font-bold text-xs">
-                        <button onclick="addDisciplineToList()" class="bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-4 rounded-xl font-black text-[10px] uppercase">Add</button>
-                    </div>
-                </div>
-
-                <!-- Section: Profile -->
-                <div id="set-section-profile" class="hidden space-y-4">
-                    <h4 class="text-[10px] font-black text-gema uppercase">Perfil do Docente</h4>
-                    <div>
-                        <label class="text-[9px] font-black uppercase text-slate-400 block mb-1">Nome Completo</label>
-                        <input type="text" id="set-prof-name" class="w-full bg-slate-50 dark:bg-slate-900 border dark:border-slate-800 p-3 rounded-xl font-bold text-xs">
-                    </div>
-                    <div>
-                        <label class="text-[9px] font-black uppercase text-slate-400 block mb-1">Alterar Utilizador</label>
-                        <input type="text" id="set-login-user" class="w-full bg-slate-50 dark:bg-slate-900 border dark:border-slate-800 p-3 rounded-xl font-bold text-xs" placeholder="Novo usuário login">
-                    </div>
-                    <button onclick="saveProfileSettings()" class="btn-premium w-full py-3 text-[10px] uppercase">Atualizar Perfil</button>
+                <div style="text-align: right; color: #333 !important;">
+                    <p style="margin: 0; font-size: 10px; font-weight: 700;" id="pdf-date-tpl"></p>
+                    <p style="margin: 3px 0 0 0; font-size: 14px; color: #ffab07 !important; font-weight: 900;" id="pdf-class-tpl"></p>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Boletim Modal -->
-    <div id="modal-boletim" class="hidden fixed inset-0 z-[1000] flex items-center justify-center p-2 bg-slate-950/90 backdrop-blur-md">
-        <div class="bg-white dark:bg-slate-900 w-full max-w-5xl max-h-[96vh] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden animate-fade">
-            <div class="p-5 border-b flex justify-between items-center no-print bg-slate-50/80 dark:bg-slate-800/80">
-                <h3 class="text-[11px] font-black uppercase text-slate-500">Preview Elite Insight</h3>
-                <div class="flex gap-2">
-                    <button id="btn-export-pdf" class="btn-premium px-6 py-2.5 rounded-xl text-[10px] font-black shadow-lg"><i class="fas fa-file-pdf mr-2"></i>Gerar PDF</button>
-                    <button onclick="closeModal('modal-boletim')" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-red-500 transition-colors"><i class="fas fa-times text-xs"></i></button>
-                </div>
+            <div id="pdf-table-target" style="background: white !important; color: black !important;"></div>
+            <div style="margin-top: 50px; text-align: center; border-top: 1px solid #eee; padding-top: 20px; font-size: 9px; color: #999 !important; font-weight: 800; text-transform: uppercase;">
+                Documento Oficial Gerado por SGS Pro Master
             </div>
-            <div id="boletim-view" class="overflow-y-auto p-6 md:p-14 space-y-12 flex-grow bg-white dark:bg-slate-950 custom-scroll text-slate-950 dark:text-white"></div>
         </div>
     </div>
 
     <script>
-        // --- v28.5 ELITE CORE ---
-        const getEl = (id) => document.getElementById(id);
-        const setHtml = (id, html) => { const el = getEl(id); if(el) el.innerHTML = html; };
-        const setVal = (id, val) => { const el = getEl(id); if(el) el.value = val; };
+        // PDF.js Worker initialization
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
 
-        let state = JSON.parse(localStorage.getItem('diario_v28_core')) || { 
-            classes: [], professor: "Docente Elite Force", 
-            config: { theme: 'dark', compact: false } 
-        };
-        
-        let activeClassId = localStorage.getItem('diario_v28_active_id') || null;
-        let charts = { perf: null, status: null, engagement: null, radar: null, miniFreq: null, miniStatus: null, d1:null, d2:null, d3:null, d4:null };
-        let selectedStudents = [];
+        const App = {
+            data: {
+                classes: [],
+                activeClassId: null,
+                password: btoa('1234'),
+                theme: 'dark'
+            },
+            selectedUids: new Set(),
+            isAdding: false,
+            matrixState: { month: new Date().getMonth(), year: new Date().getFullYear() },
+            chartInstance: null,
 
-        const getCredentials = () => JSON.parse(localStorage.getItem('diario_v28_creds')) || { user: 'admin', pass: '1234' };
+            init() {
+                const stored = localStorage.getItem('sgs_master_fusion_v12_9');
+                if (stored) {
+                    try { 
+                        this.data = JSON.parse(stored);
+                    } catch(e) {}
+                }
+                
+                if (!this.data.classes || this.data.classes.length === 0) {
+                    const id = 'c_' + Date.now();
+                    const defaultStudents = [
+                        "AFONSO CARDOSO", "ANA SILVA", "BEATRIZ CUNHA", "BRUNO SANTOS", "CAIO MACHADO", 
+                        "CARLA OLIVEIRA", "DAVID SOUZA", "DIOGO ROCHA", "EDUARDA SARAIVA", "ELIANA COSTA", 
+                        "FABIO PEREIRA", "FELIPE NEVES", "GABRIELA RODRIGUES", "GIOVANA FREITAS", "HENRIQUE MELLO", 
+                        "HUGO ALMEIDA", "IGOR RAMOS", "ISABEL NASCIMENTO", "JOÃO LOPES", "JULIANA CORDEIRO", 
+                        "KAREN GOMES", "LEONARDO ARAGÃO", "LUCAS MARTINS", "MARCELO VIANA", "MARIA FERNANDES", 
+                        "NATÁLIA MOURA", "NUNO GONÇALVES", "OLIVIA CARVALHO", "OTÁVIO BORGES", "PATRÍCIA SALES", 
+                        "PEDRO TEIXEIRA", "QUITÉRIA RIBEIRO", "RENATO BRAGA", "RICARDO MOREIRA", "SARA PINTO", 
+                        "TIAGO BARBOSA", "URSULA CAVALCANTE", "VITOR CORREIA", "WAGNER DIAS", "XAVIER CASTRO", 
+                        "YARA VIEIRA", "ZÉLIA MONTEIRO"
+                    ].map(name => ({ id: 's_' + Math.random().toString(36).substr(2, 9), name: name.toUpperCase() }));
 
-        // Toast System
-        window.showToast = (msg, type = 'success') => {
-            const container = getEl('toast-container');
-            const toast = document.createElement('div');
-            const colors = { success: 'bg-present text-white', error: 'bg-absent text-white', info: 'bg-justified text-white' };
-            const icons = { success: 'fa-check-circle', error: 'fa-exclamation-triangle', info: 'fa-info-circle' };
-            toast.className = `toast ${colors[type] || colors.success}`;
-            toast.innerHTML = `<i class="fas ${icons[type] || icons.success}"></i> <span>${msg}</span>`;
-            container.appendChild(toast);
-            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
-        };
+                    this.data.classes = [{ id, name: "TURMA PLATINUM (42)", students: defaultStudents, history: {} }];
+                    this.data.activeClassId = id;
+                    this.save();
+                }
 
-        // Calculations
-        const calculateFreq = (s, cls) => {
-            let totalDays = Object.keys(cls.attendance).length;
-            if (totalDays === 0) return 100;
-            let presentCount = 0;
-            Object.values(cls.attendance).forEach(day => {
-                const status = day[s.id];
-                if (status === 'P' || status === 'J') presentCount++;
-            });
-            return Math.round((presentCount / totalDays) * 100);
-        };
+                document.getElementById('current-date').valueAsDate = new Date();
+                this.applyTheme();
+                this.initClock();
+                if (sessionStorage.getItem('sgs_auth_v12') === 'true') { this.unlock(); }
+                lucide.createIcons();
+            },
 
-        const calculatePeriodAvg = (s, d, p, cls) => {
-            if (!s.grades || !s.grades[d] || !s.grades[d][p]) return 0;
-            const evals = Object.values(s.grades[d][p]).map(v => parseFloat(v) || 0);
-            return evals.length === 0 ? 0 : evals.reduce((a, b) => a + b, 0) / evals.length;
-        };
+            save() { localStorage.setItem('sgs_master_fusion_v12_9', JSON.stringify(this.data)); },
 
-        const calculateFinalAvg = (s, d, cls) => {
-            const avgs = [1,2,3,4].map(p => calculatePeriodAvg(s, d, p, cls));
-            return avgs.reduce((a,b) => a+b, 0) / 4;
-        };
+            handleLogin(e) {
+                e.preventDefault();
+                const pass = document.getElementById('login-pass').value;
+                if (pass === atob(this.data.password)) {
+                    sessionStorage.setItem('sgs_auth_v12', 'true');
+                    this.unlock();
+                } else alert("Senha incorreta!");
+            },
 
-        const calculateStudentSummary = (s, cls) => {
-            const discAvgs = cls.settings.disciplines.map(d => calculateFinalAvg(s, d, cls));
-            const finalAvg = discAvgs.length ? (discAvgs.reduce((a,b)=>a+b, 0) / discAvgs.length) : 0;
-            let status = "APROVADO";
-            if (finalAvg < cls.settings.mediaPass - 1.5) status = "RETIDO";
-            else if (finalAvg < cls.settings.mediaPass) status = "RECUPERAÇÃO";
-            if (calculateFreq(s, cls) < 75) status = "RETIDO (FALTAS)";
-            return { finalAvg, freq: calculateFreq(s, cls), status, discAvgs };
-        };
+            unlock() {
+                document.getElementById('login-screen').style.display = 'none';
+                const main = document.getElementById('main-app');
+                main.classList.remove('hidden');
+                setTimeout(() => main.classList.add('opacity-100'), 50);
+                this.render();
+            },
 
-        // Auth Logic
-        getEl('login-form').onsubmit = (e) => {
-            e.preventDefault();
-            const creds = getCredentials();
-            if (getEl('login-user').value === creds.user && getEl('login-pass').value === creds.pass) {
-                localStorage.setItem('diario_v28_auth', 'true');
-                checkAuthAndRoute();
-            } else window.showToast("Credenciais Inválidas", "error");
-        };
+            logout() { sessionStorage.removeItem('sgs_auth_v12'); location.reload(); },
 
-        window.startEliteEngine = () => {
-            setTimeout(() => {
-                getEl('loading-overlay').classList.add('opacity-0', 'scale-110');
-                setTimeout(() => { 
-                    getEl('loading-overlay').classList.add('hidden'); 
-                    if(state.config.compact) {
-                        document.body.classList.add('compact-mode');
-                        getEl('compact-icon').className = 'fas fa-expand text-xs';
+            initClock() {
+                const clock = document.getElementById('liveClock'), date = document.getElementById('liveDate');
+                const update = () => {
+                    const now = new Date();
+                    clock.innerText = now.toLocaleTimeString('pt-PT');
+                    date.innerText = now.toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: '2-digit' });
+                };
+                update(); setInterval(update, 1000);
+            },
+
+            getActiveClass() { return this.data.classes.find(c => c.id === this.data.activeClassId); },
+            setActiveClass(id) { this.data.activeClassId = id; this.save(); this.render(); },
+
+            switchTab(tab) {
+                document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                document.getElementById(`view-${tab}`).classList.remove('hidden');
+                document.getElementById(`tab-${tab}`).classList.add('active');
+                if (tab === 'diary') this.render();
+                if (tab === 'matrix') this.renderMatrix();
+                if (tab === 'stats') this.renderStats();
+                lucide.createIcons();
+            },
+
+            render() {
+                const cls = this.getActiveClass();
+                if (!cls) return;
+                
+                const container = document.getElementById('diary-body');
+                const empty = document.getElementById('diary-empty');
+                const date = document.getElementById('current-date').value;
+                const search = document.getElementById('student-search').value.toLowerCase();
+                
+                document.getElementById('class-selector').innerHTML = this.data.classes.map(c => 
+                    `<option value="${c.id}" ${c.id === this.data.activeClassId ? 'selected' : ''}>${c.name}</option>`
+                ).join('');
+
+                container.innerHTML = "";
+                const records = cls.history[date] || {};
+
+                if (this.isAdding) {
+                    const tr = document.createElement('tr');
+                    tr.className = "bg-brand/10 border-l-2 border-l-brand animate-in";
+                    tr.innerHTML = `<td class="p-3"><td class="p-3 text-center opacity-20 border-r border-border/30">--<td class="p-3" colspan="2"><input type="text" id="add-name" placeholder="NOME DO ALUNO + ENTER" class="bg-transparent w-full font-black text-brand outline-none uppercase text-[11px]"><td class="p-3 text-center"><button onclick="App.confirmAdd()" class="text-accent-green"><i data-lucide="check-circle" class="w-6 h-6"></i></button>`;
+                    container.appendChild(tr);
+                    const inp = document.getElementById('add-name');
+                    if(inp) {
+                        inp.focus();
+                        inp.onkeydown = (e) => { if(e.key === 'Enter') App.confirmAdd(); if(e.key === 'Escape') { App.isAdding = false; App.render(); } };
                     }
-                    checkAuthAndRoute(); 
-                }, 700);
-            }, 1000);
-        };
+                    lucide.createIcons();
+                }
 
-        window.checkAuthAndRoute = () => {
-            const isAuth = localStorage.getItem('diario_v28_auth') === 'true';
-            if (!isAuth) { getEl('auth-screen').classList.remove('hidden'); getEl('app-content').classList.add('hidden'); }
-            else { getEl('auth-screen').classList.add('hidden'); getEl('app-content').classList.remove('hidden'); initAppData(); }
-        };
+                const students = [...cls.students].sort((a,b) => a.name.localeCompare(b.name, 'pt-BR')).filter(s => s.name.toLowerCase().includes(search));
 
-        window.initAppData = () => {
-            if (state.classes.length === 0) {
-                const id = 'c' + Date.now();
-                state.classes.push({
-                    id, name: "Turma Alpha 2024", students: [], attendance: {},
-                    settings: { schoolName: "Colégio Elite Internacional", mediaPass: 6.0, totalLessons: 80, disciplines: ["Matemática", "Português", "História", "Ciências"], evalTypes: [{name: "Média", weight: 10}] }
+                students.forEach((s, idx) => {
+                    const isSel = this.selectedUids.has(s.id);
+                    const status = records[s.id] || '';
+                    const tr = document.createElement('tr');
+                    tr.className = `transition-all border-b border-border/20 ${isSel ? 'bg-brand/5 border-l-4 border-l-brand' : 'hover:bg-white/[0.02]'}`;
+                    tr.innerHTML = `
+                        <td class="p-2 text-center"><input type="checkbox" ${isSel ? 'checked' : ''} onchange="App.toggleSel('${s.id}')" class="accent-brand w-4 h-4">
+                        <td class="p-2 text-center font-mono opacity-30 text-[10px] border-r border-border/30">${(idx+1).toString().padStart(2, '0')}
+                        <td class="p-2"><input type="text" value="${s.name.replace(/'/g, "\\'")}" onblur="App.renameStudent('${s.id}', this.value)" class="bg-transparent w-full font-bold uppercase outline-none focus:text-brand truncate border-none text-[11px]">
+                        <td class="p-2 text-center"><div class="flex items-center justify-center gap-1.5">${['P','F','J'].map(st => `<button onclick="App.markStatus('${s.id}', '${st}')" class="status-btn ${status === st ? 'active-'+st : 'text-sub/40'}">${st}</button>`).join('')}</div>
+                        <td class="p-2 text-center"><button onclick="App.deleteStudent('${s.id}')" class="text-accent-danger opacity-20 hover:opacity-100"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    `;
+                    container.appendChild(tr);
                 });
-                activeClassId = id;
-            } else if (!activeClassId) activeClassId = state.classes[0].id;
-            getEl('attendance-date').valueAsDate = new Date();
-            updateUI();
-        };
 
-        window.switchTab = (tab) => {
-            ['dashboard', 'attendance', 'grades', 'students'].forEach(v => {
-                const btn = getEl(`tab-${v}`), view = getEl(`view-${v}`);
-                if (btn) btn.className = v === tab ? "px-5 h-full text-[10px] font-black uppercase tracking-widest tab-active" : "px-5 h-full text-[10px] font-bold uppercase tracking-widest text-slate-500";
-                if (view) view.classList.toggle('hidden', v !== tab);
-            });
-            updateUI();
-        };
+                if(empty) empty.classList.toggle('hidden', students.length > 0 || this.isAdding);
+                this.updateDash();
+                lucide.createIcons();
+            },
 
-        window.updateUI = () => {
-            const cls = state.classes.find(c => c.id === activeClassId);
-            if (!cls) return;
-            setHtml('active-class-title', cls.name); 
-            setHtml('school-name-display', cls.settings.schoolName);
-            const currentTab = document.querySelector('.tab-active')?.id.replace('tab-', '') || 'dashboard';
-            if (currentTab === 'dashboard') renderDashboard();
-            if (currentTab === 'attendance') renderAttendance();
-            if (currentTab === 'grades') renderGrades();
-            if (currentTab === 'students') renderStudentsTab();
+            updateDash() {
+                const cls = this.getActiveClass();
+                const date = document.getElementById('current-date').value;
+                const records = Object.values(cls.history[date] || {});
+                const total = cls.students.length;
+                const p = records.filter(v => v === 'P').length;
+                const f = records.filter(v => v === 'F').length;
+                
+                document.getElementById('dash-total').innerText = total;
+                document.getElementById('dash-pres').innerText = p;
+                document.getElementById('dash-abs').innerText = f;
+                document.getElementById('dash-freq').innerText = total > 0 ? ((p / total) * 100).toFixed(0) + '%' : '0%';
+            },
+
+            markStatus(sid, st) {
+                const cls = this.getActiveClass();
+                const date = document.getElementById('current-date').value;
+                if (!cls.history[date]) cls.history[date] = {};
+                cls.history[date][sid] = (cls.history[date][sid] === st) ? '' : st;
+                this.save(); this.render();
+            },
+
+            massStatus(st) {
+                const cls = this.getActiveClass();
+                const date = document.getElementById('current-date').value;
+                if (!cls.history[date]) cls.history[date] = {};
+                cls.students.forEach(s => cls.history[date][s.id] = st);
+                this.save(); this.render();
+            },
+
+            enableAddMode() { this.isAdding = true; this.render(); },
+            confirmAdd() {
+                const val = document.getElementById('add-name').value.trim().toUpperCase();
+                if (val) {
+                    const cls = this.getActiveClass();
+                    cls.students.push({ id: 's_' + Date.now() + Math.random(), name: val });
+                    this.isAdding = false; this.save(); this.render();
+                }
+            },
+
+            renameStudent(id, val) {
+                const cls = this.getActiveClass();
+                const s = cls.students.find(x => x.id === id);
+                if (s && val.trim()) { s.name = val.trim().toUpperCase(); this.save(); }
+            },
+
+            deleteStudent(id) {
+                const cls = this.getActiveClass();
+                const s = cls.students.find(x => x.id === id);
+                this.confirm("Excluir Estudante?", `Remover permanentemente ${s.name} do sistema?`, () => {
+                    cls.students = cls.students.filter(x => x.id !== id);
+                    this.save(); this.render();
+                });
+            },
+
+            renderMatrix() {
+                const cls = this.getActiveClass();
+                const container = document.getElementById('matrix-container');
+                const { month, year } = this.matrixState;
+                const days = new Date(year, month + 1, 0).getDate();
+                document.getElementById('matrix-month-label').textContent = new Date(year, month).toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' }).toUpperCase();
+                
+                let h = `<table class="bg-card"><thead><th class="sticky-col text-brand font-black uppercase text-[8px]">ALUNO</th>`;
+                for (let d = 1; d <= days; d++) h += `<th class="p-1 border-border/30 bg-black/10 text-fg">${d}</th>`;
+                h += `</thead><tbody>`;
+                [...cls.students].sort((a,b) => a.name.localeCompare(b.name)).forEach(s => {
+                    h += `<td class="sticky-col font-black uppercase truncate border-r border-border/50 text-[9px] text-fg">${s.name}`;
+                    for (let d = 1; d <= days; d++) {
+                        const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                        const st = cls.history[ds]?.[s.id] || '';
+                        let color = st === 'P' ? 'text-accent-green' : (st === 'F' ? 'text-accent-danger' : (st === 'J' ? 'text-accent-amber' : 'text-sub/30'));
+                        h += `<td class="${color} font-black text-[9px] border-border/10">${st || '-'}`;
+                    }
+                    h += `</tr>`;
+                });
+                container.innerHTML = h + `</tbody></table>`;
+            },
+
+            changeMatrixMonth(delta) {
+                this.matrixState.month += delta;
+                if (this.matrixState.month > 11) { this.matrixState.month = 0; this.matrixState.year++; }
+                if (this.matrixState.month < 0) { this.matrixState.month = 11; this.matrixState.year--; }
+                this.renderMatrix();
+            },
+
+            renderStats() {
+                const cls = this.getActiveClass();
+                const global = { P: 0, F: 0, J: 0 };
+                const body = document.getElementById('stats-body');
+                body.innerHTML = "";
+                const reports = cls.students.map(s => {
+                    const st = { P: 0, F: 0, J: 0 };
+                    Object.values(cls.history).forEach(day => { 
+                        const status = day[s.id];
+                        if (status === 'P') { st.P++; global.P++; }
+                        else if (status === 'F') { st.F++; global.F++; }
+                        else if (status === 'J') { st.J++; global.J++; }
+                    });
+                    const total = st.P + st.F + st.J;
+                    const freq = total > 0 ? ((st.P / total) * 100).toFixed(1) : "0.0";
+                    return { name: s.name, ...st, freq };
+                }).sort((a,b) => a.name.localeCompare(b.name));
+
+                reports.forEach(r => { 
+                    body.innerHTML += `<td class="p-3 font-bold uppercase truncate max-w-[120px] text-fg">${r.name}<td class="p-3 text-center font-bold text-accent-green">${r.P}<td class="p-3 text-center font-bold text-accent-danger">${r.F}<td class="p-3 text-center"><span class="px-2 py-0.5 rounded-full bg-brand/10 text-brand font-black">${r.freq}%</span></tr>`; 
+                });
+                
+                const ctx = document.getElementById('chart-attendance').getContext('2d');
+                if (this.chartInstance) this.chartInstance.destroy();
+                this.chartInstance = new Chart(ctx, { 
+                    type: 'doughnut', 
+                    data: { 
+                        labels: ['P', 'F', 'J'], 
+                        datasets: [{ data: [global.P, global.F, global.J], backgroundColor: ['#16a34a', '#dc2626', '#d97706'], borderWidth: 0, hoverOffset: 10 }] 
+                    }, 
+                    options: { cutout: '80%', plugins: { legend: { display: false } } } 
+                });
+                document.getElementById('chart-legend').innerHTML = `<div><p class="text-xs font-black text-accent-green">${global.P}</p><p class="text-[7px] text-sub uppercase font-bold">P</p></div><div><p class="text-xs font-black text-accent-danger">${global.F}</p><p class="text-[7px] text-sub uppercase font-bold">F</p></div><div><p class="text-xs font-black text-accent-amber">${global.J}</p><p class="text-[7px] text-sub uppercase font-bold">J</p></div>`;
+            },
+
+            async exportDiaryPDF() {
+                const cls = this.getActiveClass();
+                const date = document.getElementById('current-date').value;
+                setLoading(true, "Gerando Documento...");
+                const off = document.getElementById('pdf-offscreen');
+                off.style.left = '0px'; 
+                
+                try {
+                    document.getElementById('pdf-title-tpl').innerText = "DIÁRIO DE CHAMADA";
+                    document.getElementById('pdf-date-tpl').innerText = new Date(date+'T12:00:00').toLocaleDateString('pt-PT', { day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase();
+                    document.getElementById('pdf-class-tpl').innerText = cls.name;
+                    
+                    let h = `<table style="width:100%; border-collapse:collapse; border:1px solid #ddd; background: white !important; font-family: sans-serif;">`;
+                    h += `<tr style="background:#ffab07 !important; color:black !important; font-weight:900;">
+                            <th style="padding:10px; border:1px solid #ddd; font-size:10px; width:40px; text-align:center;">Nº</th>
+                            <th style="padding:10px; border:1px solid #ddd; font-size:10px; text-align:left;">NOME COMPLETO</th>
+                            <th style="padding:10px; border:1px solid #ddd; font-size:10px; width:100px; text-align:center;">STATUS</th>
+                           `;
+                    
+                    [...cls.students].sort((a,b) => a.name.localeCompare(b.name)).forEach((s, i) => {
+                        const st = (cls.history[date] || {})[s.id] || '-';
+                        const color = st === 'P' ? '#16a34a' : (st === 'F' ? '#dc2626' : (st === 'J' ? '#d97706' : '#999'));
+                        const bgColor = (i % 2 === 0) ? '#ffffff' : '#f9f9f9';
+                        h += `<tr style="background:${bgColor} !important;">
+                                <td style="padding:8px; border:1px solid #ddd; font-size:10px; text-align:center; color: black !important;">${(i+1).toString().padStart(2,'0')}
+                                <td style="padding:8px; border:1px solid #ddd; font-size:10px; font-weight:700; color: black !important;">${s.name}
+                                <td style="padding:8px; border:1px solid #ddd; font-size:10px; text-align:center; font-weight:900; color:${color} !important;">${st || '-'}
+                               `;
+                    });
+                    h += `</table>`;
+                    
+                    document.getElementById('pdf-table-target').innerHTML = h;
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    
+                    const opt = { 
+                        margin: 0.5, 
+                        filename: `Diario_${cls.name}_${date}.pdf`, 
+                        image: { type: 'jpeg', quality: 1 }, 
+                        html2canvas: { scale: 3, useCORS: true, logging: false, backgroundColor: '#ffffff' }, 
+                        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } 
+                    };
+                    await html2pdf().set(opt).from(document.getElementById('pdfCaptureArea')).save();
+                } finally {
+                    off.style.left = '-9999px';
+                    setLoading(false);
+                }
+            },
+
+            exportCSV() {
+                const cls = this.getActiveClass();
+                let csv = `ID;Nome;Status Atual\n`;
+                const date = document.getElementById('current-date').value;
+                cls.students.forEach(s => csv += `${s.id};${s.name};${cls.history[date]?.[s.id] || '-'}\n`);
+                saveAs(new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8' }), `SGS_${cls.name}_Export.csv`);
+            },
+
+            importCSV(input) {
+                const file = input.files[0]; if (!file) return;
+                const r = new FileReader();
+                r.onload = (e) => {
+                    const lines = e.target.result.split('\n').filter(l => l.trim());
+                    if (lines.length < 2) return;
+                    const sep = lines[0].includes(';') ? ';' : ',';
+                    const cls = this.getActiveClass();
+                    lines.forEach((l, i) => { if (i === 0) return; const cols = l.split(sep); if (cols.length >= 2) { const name = cols[1].replace(/"/g, '').trim().toUpperCase(); if(name && !cls.students.find(x => x.name === name)) cls.students.push({ id: 's_' + Date.now() + Math.random(), name }); } });
+                    this.save(); this.render();
+                };
+                r.readAsText(file);
+            },
+
+            addClass() { 
+                const name = document.getElementById('new-class-name').value.trim().toUpperCase(); 
+                if (name) { 
+                    const id = 'c_' + Date.now(); 
+                    this.data.classes.push({ id, name, students: [], history: {} }); 
+                    this.data.activeClassId = id; 
+                    document.getElementById('new-class-name').value = ''; 
+                    this.save(); this.render(); this.renderClassList(); 
+                } 
+            },
+
+            renderClassList() {
+                const list = document.getElementById('class-list');
+                list.innerHTML = this.data.classes.map(c => `
+                    <div class="flex items-center justify-between p-3 glass-card rounded-xl">
+                        <span class="text-[10px] font-black uppercase text-fg truncate">${c.name}</span>
+                        <button onclick="App.deleteClass('${c.id}')" class="text-accent-danger p-1 hover:bg-accent-danger/10 rounded-lg">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                `).join('');
+                lucide.createIcons();
+            },
+
+            deleteClass(id) { 
+                if (this.data.classes.length === 1) return; 
+                this.confirm("Excluir Unidade?", "Todos os dados históricos desta turma serão perdidos permanentemente.", () => { 
+                    this.data.classes = this.data.classes.filter(c => c.id !== id); 
+                    if (this.data.activeClassId === id) this.data.activeClassId = this.data.classes[0].id; 
+                    this.save(); this.render(); this.renderClassList(); 
+                }); 
+            },
+
+            exportBackup() { saveAs(new Blob([JSON.stringify(this.data)], { type: 'application/json' }), `Backup_SGS_MASTER_${Date.now()}.json`); },
+            importBackup(input) { 
+                const file = input.files[0]; 
+                if (file) { 
+                    const r = new FileReader(); 
+                    r.onload = (e) => { 
+                        try { 
+                            const d = JSON.parse(e.target.result); 
+                            if(d.classes) { this.data = d; this.save(); location.reload(); } 
+                        } catch(err) { alert("Backup inválido."); } 
+                    }; 
+                    r.readAsText(file); 
+                } 
+            },
+
+            toggleTheme() { this.data.theme = this.data.theme === 'dark' ? 'light' : 'dark'; this.applyTheme(); this.save(); },
+            applyTheme() { 
+                if(this.data.theme === 'light') {
+                    document.documentElement.classList.remove('dark');
+                    document.body.classList.add('light-mode'); 
+                } else {
+                    document.documentElement.classList.add('dark');
+                    document.body.classList.remove('light-mode'); 
+                }
+                const icon = document.getElementById('themeIcon');
+                if(icon) {
+                    icon.setAttribute('data-lucide', this.data.theme === 'dark' ? 'sun' : 'moon'); 
+                    lucide.createIcons(); 
+                }
+            },
+
+            openModal(id) { document.getElementById(id).classList.add('active'); if(id === 'modal-turmas') this.renderClassList(); },
+            closeModal() { document.querySelectorAll('.modal-backdrop').forEach(m => m.classList.remove('active')); },
             
-            getEl('save-status').classList.add('save-active');
-            setTimeout(() => getEl('save-status').classList.remove('save-active'), 1500);
+            confirm(title, desc, onConfirm) { 
+                document.getElementById('confirm-title').innerText = title; 
+                document.getElementById('confirm-desc').innerText = desc; 
+                document.getElementById('confirm-yes').onclick = () => { onConfirm(); this.closeModal(); }; 
+                this.openModal('modal-confirm'); 
+            },
 
-            localStorage.setItem('diario_v28_core', JSON.stringify(state));
-            localStorage.setItem('diario_v28_active_id', activeClassId);
-        };
-
-        const renderDashboard = () => {
-            const cls = state.classes.find(c => c.id === activeClassId);
-            let app = 0, warn = 0, fail = 0;
-            cls.students.forEach(s => {
-                const sum = calculateStudentSummary(s, cls);
-                if (sum.status === "APROVADO") app++; else if (sum.status === "RECUPERAÇÃO") warn++; else fail++;
-            });
-            setHtml('dash-total-students', cls.students.length); setHtml('dash-approved', app); setHtml('dash-warning', warn); setHtml('dash-failed', fail);
-            initCharts(app, warn, fail, cls);
-        };
-
-        const initCharts = (app, warn, fail, cls) => {
-            const isDark = document.documentElement.classList.contains('dark'), textColor = isDark ? '#94a3b8' : '#475569';
-            Object.keys(charts).forEach(k => { if(charts[k]) charts[k].destroy(); });
-
-            const createMiniCircle = (id, color, val, total) => {
-                const ctx = getEl(id); if(!ctx) return null;
-                return new Chart(ctx, { type: 'doughnut', data: { datasets: [{ data: [val, (total - val) || 0.001], backgroundColor: [color, 'rgba(0,0,0,0.05)'], borderWidth: 0 }] }, options: { cutout: '75%', maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } } } });
-            };
-            charts.d1 = createMiniCircle('dash-chart-total', '#FFCC00', 100, 100);
-            charts.d2 = createMiniCircle('dash-chart-app', '#10b981', app, cls.students.length);
-            charts.d3 = createMiniCircle('dash-chart-warn', '#f59e0b', warn, cls.students.length);
-            charts.d4 = createMiniCircle('dash-chart-fail', '#ef4444', fail, cls.students.length);
-
-            charts.perf = new Chart(getEl('chart-performance'), { type: 'bar', data: { labels: cls.settings.disciplines, datasets: [{ label: 'Média', data: cls.settings.disciplines.map(d => cls.students.length ? (cls.students.reduce((acc,s)=>acc+calculateFinalAvg(s,d,cls),0)/cls.students.length) : 0), backgroundColor: '#FFCC00', borderRadius: 8 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 10, ticks: { color: textColor, font: { size: 9 } } }, x: { ticks: { color: textColor, font: { size: 9 } } } }, plugins: { legend: { display: false } } } });
+            confirmAction(title, desc, action) { this.confirm(title, desc, action); },
             
-            charts.status = new Chart(getEl('chart-status'), { type: 'doughnut', data: { labels: ['Aprovados', 'Atenção', 'Retidos'], datasets: [{ data: [app, warn, fail], backgroundColor: ['#10b981', '#f59e0b', '#ef4444'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '80%', plugins: { legend: { position: 'bottom', labels: { color: textColor, boxWidth: 10, font: { weight: 'bold', size: 9 } } } } } });
+            toggleSel(id) { 
+                if(this.selectedUids.has(id)) this.selectedUids.delete(id); 
+                else this.selectedUids.add(id); 
+                this.updateSelUI(); 
+            },
 
-            let p = 0, f = 0, j = 0;
-            Object.values(cls.attendance).forEach(d => Object.values(d).forEach(st => { if(st==='P')p++; if(st==='F')f++; if(st==='J')j++; }));
-            const total = p + f + j || 1;
-            charts.engagement = new Chart(getEl('chart-engagement'), { type: 'doughnut', data: { labels: ['Presenças', 'Faltas', 'Justificadas'], datasets: [{ data: [p, f, j], backgroundColor: ['#10b981', '#ef4444', '#3b82f6'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } } });
-            setHtml('stat-p-val', `${p} (${((p/total)*100).toFixed(0)}%)`);
-            setHtml('stat-f-val', `${f} (${((f/total)*100).toFixed(0)}%)`);
-            setHtml('stat-j-val', `${j} (${((j/total)*100).toFixed(0)}%)`);
-        };
+            toggleSelectAll(v) { 
+                const cls = this.getActiveClass(); 
+                const search = document.getElementById('student-search').value.toLowerCase(); 
+                cls.students.filter(s => s.name.toLowerCase().includes(search)).forEach(s => v ? this.selectedUids.add(s.id) : this.selectedUids.delete(s.id)); 
+                this.updateSelUI(); 
+            },
 
-        window.renderAttendance = () => {
-            const cls = state.classes.find(c => c.id === activeClassId), date = getEl('attendance-date').value, daily = cls.attendance[date] || {};
-            setHtml('att-table-body', cls.students.sort((a,b)=>a.name.localeCompare(b.name)).map((s, i) => `
-                <tr class="hover:bg-slate-50 dark:hover:bg-slate-900/40 transition-colors">
-                    <td class="px-6 py-4 text-center text-slate-400 font-mono text-[10px]">${i+1}</td>
-                    <td class="px-6 py-4 text-slate-950 dark:text-white uppercase truncate max-w-[200px]">${s.name}</td>
-                    <td class="px-6 py-4 text-center">
-                        <div class="flex justify-center gap-1">
-                            ${['P','F','J'].map(t => `<button onclick="markStatus('${s.id}','${t}')" class="w-8 h-8 md:w-9 md:h-9 rounded-xl font-black text-[10px] md:text-[11px] transition-all ${daily[s.id]===t ? 'bg-grad-gema text-slate-950 shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}">${t}</button>`).join('')}
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 text-right tabular-nums text-slate-500">${calculateFreq(s, cls)}%</td>
-                </tr>`).join(''));
-        };
+            updateSelUI() { 
+                const count = this.selectedUids.size; 
+                const el = document.getElementById('sel-count'); 
+                if(el) el.innerText = count; 
+                document.getElementById('selection-toolbar').classList.toggle('visible', count > 0); 
+                this.render(); 
+            },
 
-        window.markStatus = (sid, st) => {
-            const date = getEl('attendance-date').value, cls = state.classes.find(c => c.id === activeClassId);
-            if(!cls.attendance[date]) cls.attendance[date] = {};
-            cls.attendance[date][sid] = cls.attendance[date][sid] === st ? '' : st;
-            updateUI();
-        };
+            clearSelection() { 
+                this.selectedUids.clear(); 
+                const el = document.getElementById('select-all'); 
+                if(el) el.checked = false; 
+                this.updateSelUI(); 
+            },
 
-        window.markAllAttendance = (st) => {
-            const date = getEl('attendance-date').value, cls = state.classes.find(c => c.id === activeClassId);
-            if(!cls.attendance[date]) cls.attendance[date] = {};
-            cls.students.forEach(s => cls.attendance[date][s.id] = st);
-            updateUI();
-        };
+            batchAction(st) { 
+                const cls = this.getActiveClass(); 
+                const date = document.getElementById('current-date').value; 
+                if(!cls.history[date]) cls.history[date] = {}; 
+                this.selectedUids.forEach(id => cls.history[date][id] = st); 
+                this.save(); this.clearSelection(); 
+            },
 
-        window.renderGrades = () => {
-            const cls = state.classes.find(c => c.id === activeClassId), discSel = getEl('select-discipline'), p = getEl('select-period').value;
-            if(!discSel.options.length) setHtml('select-discipline', cls.settings.disciplines.map(d => `<option value="${d}">${d}</option>`).join(''));
-            const d = discSel.value, isConsolidated = p === 'consolidated';
+            batchDeleteSelected() { 
+                this.confirm("Remover Marcados?", `Eliminar ${this.selectedUids.size} alunos selecionados da turma atual?`, () => { 
+                    const cls = this.getActiveClass(); 
+                    cls.students = cls.students.filter(s => !this.selectedUids.has(s.id)); 
+                    this.save(); this.clearSelection(); 
+                }); 
+            },
 
-            if (isConsolidated) {
-                setHtml('grades-table-head', `<tr><th class="px-6 py-4 text-left">Académico</th><th class="px-4 py-4 text-center">B1</th><th class="px-4 py-4 text-center">B2</th><th class="px-4 py-4 text-center">B3</th><th class="px-4 py-4 text-center">B4</th><th class="px-6 py-4 text-right">Média Final</th><th class="px-6 py-4 text-right">Situação</th></tr>`);
-                setHtml('grades-table-body', cls.students.map(s => {
-                    const b = [1,2,3,4].map(pi => calculatePeriodAvg(s, d, pi, cls)), f = (b[0]+b[1]+b[2]+b[3])/4, res = calculateStudentSummary(s, cls);
-                    return `<tr><td class="px-6 py-4 uppercase text-slate-950 dark:text-white">${s.name}</td>${b.map(bi => `<td class="px-4 py-4 text-center opacity-60">${bi.toFixed(1)}</td>`).join('')}<td class="px-6 py-4 text-right font-black ${f>=cls.settings.mediaPass?'text-present':'text-absent'}">${f.toFixed(1)}</td><td class="px-6 py-4 text-right"><span class="px-3 py-1 rounded-full text-[8px] font-black ${res.status==='APROVADO'?'bg-present/10 text-present':'bg-absent/10 text-absent'}">${res.status}</span></td></tr>`;
-                }).join(''));
-            } else {
-                const evals = cls.settings.evalTypes || [{name: "Média", weight: 10}];
-                setHtml('grades-table-head', `<tr><th class="px-6 py-4 text-left">Académico</th>${evals.map(e => `<th class="px-4 py-4 text-center w-24">${e.name}</th>`).join('')}<th class="px-6 py-4 text-right w-32">Média Bi.</th></tr>`);
-                setHtml('grades-table-body', cls.students.map(s => `<tr class="hover:bg-slate-50 dark:hover:bg-slate-900/40"><td class="px-6 py-4 uppercase truncate max-w-[200px] text-slate-950 dark:text-white">${s.name}</td>${evals.map(e => `<td class="px-2 py-4 text-center"><input type="number" step="0.1" value="${(s.grades?.[d]?.[p]?.[e.name]) || ''}" onblur="saveGrade('${s.id}','${d}','${p}','${e.name}',this.value)" class="w-16 bg-slate-50 dark:bg-slate-800 border-none p-2 rounded-xl text-center font-bold text-xs focus:ring-2 focus:ring-gema text-slate-900 dark:text-white"></td>`).join('')}<td class="px-6 py-4 text-right font-black ${calculatePeriodAvg(s,d,p,cls)>=cls.settings.mediaPass?'text-present':'text-absent'}">${calculatePeriodAvg(s,d,p,cls).toFixed(1)}</td></tr>`).join(''));
+            clearActiveStudents() { 
+                const cls = this.getActiveClass(); 
+                cls.students = []; 
+                cls.history = {}; 
+                this.save(); this.render(); 
+            },
+
+            // CORREÇÃO: PDF do Conversor usando jsPDF + autoTable
+            async exportGenericPDF(data) {
+                if (!data || data.length === 0) {
+                    alert("Não há dados para exportar.");
+                    return;
+                }
+
+                setLoading(true, "Gerando PDF com AutoTable...");
+
+                try {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF({
+                        orientation: 'landscape',
+                        unit: 'mm',
+                        format: 'a4'
+                    });
+
+                    // Cabeçalhos genéricos
+                    const headers = data[0].map((_, idx) => `Coluna ${idx + 1}`);
+                    const body = data.map(row => row.map(cell => cell || ""));
+
+                    const options = {
+                        head: [headers],
+                        body: body,
+                        theme: 'grid',
+                        styles: {
+                            fontSize: 8,
+                            cellPadding: 2,
+                            valign: 'middle',
+                            halign: 'left',
+                            overflow: 'linebreak'
+                        },
+                        headStyles: {
+                            fillColor: [255, 171, 7],
+                            textColor: 0,
+                            fontStyle: 'bold',
+                            halign: 'center'
+                        },
+                        margin: { top: 20, left: 10, right: 10, bottom: 20 },
+                        didDrawPage: function (data) {
+                            doc.setFontSize(16);
+                            doc.setTextColor(255, 171, 7);
+                            doc.text("DADOS EXTRAÍDOS", data.settings.margin.left, 15);
+                            doc.setFontSize(9);
+                            doc.setTextColor(100);
+                            doc.text(`Data: ${new Date().toLocaleDateString('pt-PT')}`, data.settings.margin.left, 22);
+                            doc.text(`CONVERSOR MASTER`, data.settings.margin.left, 29);
+                        }
+                    };
+
+                    doc.autoTable(options);
+                    doc.save(`Extracao_${Date.now()}.pdf`);
+                } catch (error) {
+                    console.error("Erro ao gerar PDF:", error);
+                    alert("Ocorreu um erro ao gerar o PDF. Tente novamente.");
+                } finally {
+                    setLoading(false);
+                }
             }
         };
 
-        window.saveGrade = (sid, d, p, e, val) => {
-            const cls = state.classes.find(c => c.id === activeClassId), s = cls.students.find(x=>x.id===sid);
-            if(!s.grades) s.grades = {}; if(!s.grades[d]) s.grades[d] = {}; if(!s.grades[d][p]) s.grades[d][p] = {};
-            s.grades[d][p][e] = val; updateUI();
-        };
+        const Converter = {
+            structured: [],
+            async handleFile(file) {
+                if(!file) return;
+                setLoading(true, "Lendo Documento...");
+                const r = new FileReader();
+                r.onload = async (e) => {
+                    try {
+                        if(file.name.toLowerCase().endsWith('.pdf')) {
+                            const loadingTask = pdfjsLib.getDocument({data: new Uint8Array(e.target.result)});
+                            const pdf = await loadingTask.promise;
+                            let text = "";
+                            for(let i=1; i<=pdf.numPages; i++) {
+                                const page = await pdf.getPage(i), content = await page.getTextContent();
+                                const items = content.items.sort((a,b) => (Math.abs(a.transform[5] - b.transform[5]) > 2) ? b.transform[5] - a.transform[5] : a.transform[4] - b.transform[4]);
+                                let lastY = -1;
+                                items.forEach(it => { if(lastY !== -1 && Math.abs(it.transform[5] - lastY) > 2) text += "\n"; text += it.str + " "; lastY = it.transform[5]; });
+                            }
+                            this.updateRaw(text);
+                        } else {
+                            this.updateRaw(e.target.result);
+                        }
+                    } catch(err) { 
+                        console.error(err); 
+                    } finally { 
+                        setLoading(false); 
+                    }
+                };
+                if(file.name.toLowerCase().endsWith('.pdf')) r.readAsArrayBuffer(file); 
+                else r.readAsText(file);
+            },
 
-        window.renderStudentsTab = () => {
-            const cls = state.classes.find(c => c.id === activeClassId), sTxt = getEl('search-students-list').value.toLowerCase();
-            setHtml('students-table-body', cls.students.filter(s => s.name.toLowerCase().includes(sTxt)).map(s => `<tr class="hover:bg-slate-50 dark:hover:bg-slate-900/40"><td class="px-6 py-4 text-center"><input type="checkbox" value="${s.id}" onchange="updateSelectedStudents(this)" ${selectedStudents.includes(s.id)?'checked':''}></td><td class="px-6 py-4 uppercase font-bold text-slate-950 dark:text-white">${s.name}</td><td class="px-6 py-4 text-right space-x-1"><button onclick="generateIndividualReport('${s.id}')" title="Relatório" class="w-9 h-9 rounded-xl bg-present/10 text-present hover:bg-present hover:text-white"><i class="fas fa-chart-line text-xs"></i></button><button onclick="editStudent('${s.id}')" class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-gema"><i class="fas fa-edit text-xs"></i></button><button onclick="removeStudent('${s.id}')" class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-absent"><i class="fas fa-trash text-xs"></i></button></td></tr>`).join(''));
-            getEl('btn-bulk-delete').classList.toggle('hidden', selectedStudents.length === 0);
-        };
+            updateRaw(text) {
+                const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+                const sep = text.includes(';') ? ';' : (text.includes('\t') ? '\t' : (text.includes(',') ? ',' : null));
+                this.structured = lines.map(line => sep ? line.split(sep).map(c => c.trim()) : [line]);
+                document.getElementById('manual-input').value = text;
+                this.renderPreview();
+                document.getElementById('convert-preview').classList.remove('hidden');
+                document.getElementById('importCountTag').innerText = this.structured.length;
+            },
 
-        window.openModal = (id) => getEl(id).classList.remove('hidden');
-        window.closeModal = (id) => getEl(id).classList.add('hidden');
-        window.toggleSettingsMenu = () => getEl('settings-dropdown').classList.toggle('hidden');
-
-        window.customPrompt = (t, d, def = "", ico = "fa-edit", cb) => {
-            getEl('action-title').innerText = t; getEl('action-desc').innerText = d; 
-            getEl('action-icon').className = `fas ${ico} text-xl`; getEl('action-input-field').value = def;
-            getEl('action-input-container').classList.remove('hidden'); openModal('modal-input-action');
-            getEl('btn-action-confirm').onclick = () => { closeModal('modal-input-action'); cb(getEl('action-input-field').value); };
-        };
-
-        window.customConfirm = (t, d, ico = "fa-question", cb) => {
-            getEl('action-title').innerText = t; getEl('action-desc').innerText = d;
-            getEl('action-icon').className = `fas ${ico} text-xl`; getEl('action-input-container').classList.add('hidden');
-            openModal('modal-input-action'); getEl('btn-action-confirm').onclick = () => { closeModal('modal-input-action'); cb(true); };
-        };
-
-        window.handleAddClass = () => { const n = getEl('new-class-input').value.trim(); if(!n) return; const id = 'c'+Date.now(); state.classes.push({ id, name: n, students: [], attendance: {}, settings: {...state.classes[0].settings} }); activeClassId = id; getEl('new-class-input').value = ''; closeModal('modal-manage-classes'); updateUI(); renderClassList(); window.showToast("Turma Criada"); };
-        window.selectClass = (id) => { activeClassId = id; closeModal('modal-manage-classes'); updateUI(); };
-        window.deleteClass = (id) => { if(state.classes.length <= 1) return; customConfirm("Excluir Turma", "Confirma?", "fa-trash", (res) => { if(res){ state.classes = state.classes.filter(x=>x.id!==id); if(activeClassId===id) activeClassId = state.classes[0].id; updateUI(); renderClassList(); window.showToast("Turma Removida", "info"); } }); };
-        window.renameClass = (id) => { const c = state.classes.find(x=>x.id===id); customPrompt("Mudar Nome", "Novo nome", c.name, "fa-edit", (n) => { if(n){ c.name = n; updateUI(); renderClassList(); } }); };
-        window.renderClassList = () => {
-            setHtml('class-list-container', state.classes.map(c => `<div class="flex items-center gap-4 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border ${c.id===activeClassId?'border-gema shadow-lg ring-2 ring-gema/10':'border-slate-100 dark:border-slate-800'} transition-all"><div onclick="selectClass('${c.id}')" class="flex-grow cursor-pointer overflow-hidden"><span class="font-black uppercase ${c.id===activeClassId?'text-gema':'text-slate-900 dark:text-white'} truncate block text-[12px]">${c.name}</span></div><div class="flex gap-2"><button onclick="renameClass('${c.id}')" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white dark:bg-slate-800 text-slate-400 hover:text-gema shadow-sm"><i class="fas fa-edit text-[10px]"></i></button><button onclick="deleteClass('${c.id}')" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white dark:bg-slate-800 text-slate-400 hover:text-absent shadow-sm"><i class="fas fa-trash text-[10px]"></i></button></div></div>`).join(''));
-        };
-
-        window.openSettingsModal = (sec) => {
-            ['school', 'curriculum', 'profile'].forEach(s => { const el = getEl(`set-section-${s}`); if(el) el.classList.toggle('hidden', s !== sec); });
-            renderSettings();
-            openModal('modal-settings');
-        };
-
-        window.renderSettings = () => {
-            const cls = state.classes.find(c => c.id === activeClassId);
-            setVal('set-school-name', cls.settings.schoolName); setVal('set-media-pass', cls.settings.mediaPass); setVal('set-total-lessons', cls.settings.totalLessons);
-            setVal('set-prof-name', state.professor);
-            setHtml('set-disc-tags', cls.settings.disciplines.map(d => `<span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-3 py-1.5 rounded-xl text-[9px] font-black border border-slate-200 dark:border-slate-700 uppercase flex items-center gap-2">${d}<button onclick="removeDisc('${d}')" class="text-absent hover:scale-125 transition-transform">×</button></span>`).join(''));
-        };
-
-        window.saveGlobalSettings = () => { const cls = state.classes.find(c=>c.id===activeClassId); cls.settings.schoolName = getEl('set-school-name').value; cls.settings.mediaPass = parseFloat(getEl('set-media-pass').value); cls.settings.totalLessons = parseInt(getEl('set-total-lessons').value); updateUI(); closeModal('modal-settings'); window.showToast("Configurações Salvas"); };
-        window.saveProfileSettings = () => { state.professor = getEl('set-prof-name').value; const u = getEl('set-login-user').value.trim(); if(u) localStorage.setItem('diario_v28_creds', JSON.stringify({ user: u, pass: getCredentials().pass })); updateUI(); closeModal('modal-settings'); window.showToast("Perfil Atualizado"); };
-        window.addDisciplineToList = () => { const n = getEl('new-disc-name').value.trim(), cls = state.classes.find(c=>c.id===activeClassId); if(!n || cls.settings.disciplines.includes(n)) return; cls.settings.disciplines.push(n); getEl('new-disc-name').value = ''; renderSettings(); updateUI(); };
-        window.removeDisc = (d) => { const cls = state.classes.find(c=>c.id===activeClassId); cls.settings.disciplines = cls.settings.disciplines.filter(x=>x!==d); renderSettings(); updateUI(); };
-
-        window.handleAddStudent = () => customPrompt("Novo Académico", "Nome completo", "", "fa-user-plus", (n) => { if(n){ state.classes.find(c=>c.id===activeClassId).students.push({ id: 's'+Math.random().toString(36).substr(2,6), name: n, grades: {} }); updateUI(); window.showToast("Académico Adicionado"); } });
-        window.editStudent = (sid) => { const s = state.classes.find(c=>c.id===activeClassId).students.find(x=>x.id===sid); customPrompt("Editar", "Nome", s.name, "fa-edit", (n) => { if(n){ s.name = n; updateUI(); } }); };
-        window.removeStudent = (sid) => customConfirm("Remover", "Eliminar registo?", "fa-user-minus", (res) => { if(res){ const cls = state.classes.find(c=>c.id===activeClassId); cls.students = cls.students.filter(x=>x.id!==sid); updateUI(); } });
-        window.handleBulkImportPrompt = () => customPrompt("Importar Lote", "Nomes (um por linha)", "", "fa-paste", (txt) => { if(txt){ txt.split('\n').filter(l=>l.trim().length>3).forEach(n => state.classes.find(c=>c.id===activeClassId).students.push({ id: 's'+Math.random().toString(36).substr(2,6), name: n.trim(), grades: {} })); updateUI(); window.showToast("Importação Finalizada"); } });
-
-        window.handleCsvImport = (input) => {
-            const file = input.files[0]; if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const text = e.target.result, lines = text.split(/\r?\n/), cls = state.classes.find(c => c.id === activeClassId);
-                let count = 0;
-                lines.forEach(line => {
-                    const name = line.replace(/["']/g, "").trim();
-                    if (name.length > 2 && !cls.students.find(s => s.name === name)) { cls.students.push({ id: 's' + Math.random().toString(36).substr(2, 6), name, grades: {} }); count++; }
+            renderPreview() {
+                const h = document.getElementById('preview-header'), b = document.getElementById('preview-body');
+                h.innerHTML = ""; b.innerHTML = "";
+                if(this.structured.length === 0) return;
+                const max = Math.max(...this.structured.map(r => r.length));
+                for(let i=0; i<max; i++) h.innerHTML += `<th class="p-2 border-b border-white/10 opacity-30 text-center uppercase text-[8px] text-fg">C${i+1}</th>`;
+                this.structured.forEach(row => { 
+                    const tr = document.createElement('tr'); 
+                    for(let i=0; i<max; i++) tr.innerHTML += `<td class="p-2 truncate max-w-[120px] text-center border-border/10 text-[9px] text-fg">${row[i] || ""}`; 
+                    b.appendChild(tr); 
                 });
-                input.value = ''; updateUI(); window.showToast(`${count} Académicos importados`);
-            }; reader.readAsText(file);
+            },
+
+            sync() {
+                if(this.structured.length === 0) return;
+                const cls = App.getActiveClass();
+                let added = 0;
+                this.structured.forEach(row => {
+                    let candidate = row.reduce((a, b) => a.length > b.length ? a : b, "");
+                    let clean = candidate.replace(/^\d+[\s\.\-\)]+/, '').trim().toUpperCase();
+                    if(clean.length > 2 && !cls.students.find(x => x.name === clean)) { 
+                        cls.students.push({ id: 's_' + Date.now() + Math.random(), name: clean }); 
+                        added++; 
+                    }
+                });
+                App.save(); App.switchTab('diary'); App.render(); this.reset();
+            },
+
+            reset() { 
+                this.structured = []; 
+                document.getElementById('manual-input').value = ""; 
+                document.getElementById('convert-preview').classList.add('hidden'); 
+            },
+
+            exportExt(type) {
+                const fn = `SGS_Extract_${Date.now()}`;
+                if(type === 'csv') saveAs(new Blob(["\uFEFF" + this.structured.map(r => r.map(c => `"${c.replace(/"/g, '""')}"`).join(";")).join("\n")], {type: "text/csv"}), fn+'.csv');
+                else if(type === 'json') saveAs(new Blob([JSON.stringify(this.structured, null, 2)], {type: "application/json"}), fn+'.json');
+                else if(type === 'txt') saveAs(new Blob([this.structured.map(r => r.join(" | ")).join("\n")], {type: "text/plain"}), fn+'.txt');
+                else if(type === 'pdf') App.exportGenericPDF(this.structured);
+            }
         };
 
-        window.updateSelectedStudents = (el) => { if(el.checked) selectedStudents.push(el.value); else selectedStudents = selectedStudents.filter(id => id !== el.value); renderStudentsTab(); };
-        window.toggleSelectAll = (el) => { const cls = state.classes.find(c => c.id === activeClassId); selectedStudents = el.checked ? cls.students.map(s => s.id) : []; renderStudentsTab(); };
-        window.handleBulkDelete = () => customConfirm("Apagar Massa", `Deseja excluir ${selectedStudents.length}?`, "fa-trash", (res) => { if(res){ const cls = state.classes.find(c=>c.id===activeClassId); cls.students = cls.students.filter(s => !selectedStudents.includes(s.id)); selectedStudents = []; updateUI(); } });
+        function setLoading(v, m) { 
+            const ov = document.getElementById('loading-overlay'); 
+            if(ov) ov.classList.toggle('hidden', !v); 
+            if(m) { 
+                const msg = document.getElementById('loading-msg'); 
+                if(msg) msg.innerText = m; 
+            } 
+        }
 
-        window.handleExportDailyAttendancePdf = () => {
-            const cls = state.classes.find(c => c.id === activeClassId);
-            const date = getEl('attendance-date').value;
-            const daily = cls.attendance[date] || {};
-            const html = `
-                <div style="font-family: sans-serif; padding: 40px; color: #0f172a;">
-                    <h1 style="font-size: 24px; font-weight: 800; border-bottom: 4px solid #FFCC00; padding-bottom: 10px;">RELATÓRIO DE CHAMADA</h1>
-                    <p style="font-weight: bold; margin-top: 5px;">INSTITUIÇÃO: ${cls.settings.schoolName}</p>
-                    <p>DATA: ${new Date(date).toLocaleDateString()} | TURMA: ${cls.name}</p>
-                    <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-                        <thead>
-                            <tr style="background: #f1f5f9; text-align: left;">
-                                <th style="padding: 10px; border: 1px solid #e2e8f0;">Nº</th>
-                                <th style="padding: 10px; border: 1px solid #e2e8f0;">ALUNO</th>
-                                <th style="padding: 10px; border: 1px solid #e2e8f0; text-align: center;">STATUS</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${cls.students.sort((a,b)=>a.name.localeCompare(b.name)).map((s, i) => `<tr><td style="padding: 10px; border: 1px solid #e2e8f0;">${i+1}</td><td style="padding: 10px; border: 1px solid #e2e8f0;">${s.name.toUpperCase()}</td><td style="padding: 10px; border: 1px solid #e2e8f0; text-align: center; font-weight: bold;">${daily[s.id] || '-'}</td></tr>`).join('')}
-                        </tbody>
-                    </table>
-                </div>`;
-            html2pdf().from(html).set({ margin: 0, filename: `Chamada_${cls.name}_${date}.pdf`, html2canvas: { scale: 2 } }).save();
-        };
-
-        window.handleExportStudentListPdf = () => {
-            const cls = state.classes.find(c => c.id === activeClassId);
-            const html = `<div style="font-family: sans-serif; padding: 40px; color: #0f172a;"><div style="text-align: center; margin-bottom: 30px;"><h1 style="font-size: 20px; font-weight: 800;">LISTA DE ASSINATURA</h1><p>${cls.settings.schoolName}</p><p>TURMA: ${cls.name} | DATA: ____/____/2024</p></div><table style="width: 100%; border-collapse: collapse;"><thead><tr style="background: #f1f5f9; text-align: left;"><th style="padding: 10px; border: 1px solid #e2e8f0; width: 40px;">Nº</th><th style="padding: 10px; border: 1px solid #e2e8f0;">NOME DO ACADÉMICO</th><th style="padding: 10px; border: 1px solid #e2e8f0; width: 250px;">ASSINATURA</th></tr></thead><tbody>${cls.students.sort((a,b)=>a.name.localeCompare(b.name)).map((s, i) => `<tr><td style="padding: 15px 10px; border: 1px solid #e2e8f0; font-size: 11px;">${i+1}</td><td style="padding: 15px 10px; border: 1px solid #e2e8f0; font-size: 11px;">${s.name.toUpperCase()}</td><td style="padding: 15px 10px; border: 1px solid #e2e8f0; border-bottom: 1px solid #cbd5e1;"></td></tr>`).join('')}</tbody></table></div>`;
-            html2pdf().from(html).set({ margin: 0, filename: `Lista_Assinatura_${cls.name}.pdf`, html2canvas: { scale: 2 } }).save();
-        };
-
-        window.generateIndividualReport = (sid) => {
-            const cls = state.classes.find(c => c.id === activeClassId), s = cls.students.find(x => x.id === sid), res = calculateStudentSummary(s, cls);
-            getEl('boletim-view').innerHTML = `<div class="space-y-10 animate-fade"><div class="flex justify-between items-end border-b-4 border-gema pb-8"><div><p class="text-[10px] font-black uppercase text-gema mb-2 tracking-widest">Elite Performance Insight</p><h2 class="text-5xl font-black uppercase tracking-tighter text-slate-950 dark:text-white">${s.name}</h2><p class="text-slate-500 font-bold uppercase text-xs mt-1">${cls.name} • Ano Letivo 2024</p></div><div class="text-right"><span class="block text-5xl font-black ${res.finalAvg >= cls.settings.mediaPass ? 'text-present' : 'text-absent'}">${res.finalAvg.toFixed(1)}</span><span class="text-[9px] font-black uppercase text-slate-400">Média Global</span></div></div><div class="grid grid-cols-1 lg:grid-cols-2 gap-8"><div class="card-premium p-8 flex flex-col items-center justify-center min-h-[400px] bg-slate-50/50 dark:bg-slate-900/50"><h4 class="text-[10px] font-black uppercase text-slate-400 mb-8 tracking-widest">Análise de Equilíbrio</h4><div class="w-full h-full relative"><canvas id="radar-student"></canvas></div></div><div class="grid grid-cols-1 gap-6"><div class="card-premium p-8 flex flex-col justify-center min-h-[220px]"><h4 class="text-[10px] font-black uppercase text-slate-400 mb-6 tracking-widest">Frequência Escolar</h4><div class="flex items-center gap-8"><div class="w-32 h-32 relative"><canvas id="mini-chart-freq"></canvas></div><div><p class="text-4xl font-black text-slate-950 dark:text-white">${res.freq}%</p><p class="text-[9px] font-bold text-slate-400 uppercase">Presença Total</p><p class="text-[10px] mt-2 font-black ${res.freq >= 75 ? 'text-present' : 'text-absent'} uppercase">${res.freq >= 75 ? 'Regular' : 'Abaixo do Limite'}</p></div></div></div><div class="card-premium p-8 flex flex-col justify-center min-h-[220px]"><h4 class="text-[10px] font-black uppercase text-slate-400 mb-6 tracking-widest">Situação de Aprovação</h4><div class="space-y-4"><div class="flex justify-between items-center"><span class="text-xs font-black uppercase">${res.status}</span><span class="text-xs font-bold text-slate-400">Meta: ${cls.settings.mediaPass.toFixed(1)}</span></div><div class="h-10 w-full relative"><canvas id="mini-chart-status"></canvas></div></div></div></div></div><div class="card-premium p-10"><h4 class="text-[10px] font-black uppercase text-slate-400 mb-8 tracking-widest">Mapa de Notas por Disciplina</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">${cls.settings.disciplines.map(d => { const avg = calculateFinalAvg(s, d, cls); return `<div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800"><span class="font-bold text-slate-500 uppercase text-[11px]">${d}</span><div class="flex items-center gap-4"><div class="w-32 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden"><div class="h-full bg-gema" style="width: ${avg * 10}%"></div></div><span class="font-black text-slate-950 dark:text-white w-6 text-right">${avg.toFixed(1)}</span></div></div>`; }).join('')}</div></div></div>`;
-            openModal('modal-boletim');
-            setTimeout(() => {
-                if(charts.radar) charts.radar.destroy();
-                charts.radar = new Chart(getEl('radar-student'), { type: 'radar', data: { labels: cls.settings.disciplines, datasets: [{ data: cls.settings.disciplines.map(d => calculateFinalAvg(s, d, cls)), backgroundColor: 'rgba(255, 204, 0, 0.2)', borderColor: '#FFCC00', pointBackgroundColor: '#FFCC00', borderWidth: 2 }] }, options: { scales: { r: { beginAtZero: true, max: 10, ticks: { display: false }, grid: { color: 'rgba(148, 163, 184, 0.1)' } } }, plugins: { legend: { display: false } } } });
-                if(charts.miniFreq) charts.miniFreq.destroy();
-                charts.miniFreq = new Chart(getEl('mini-chart-freq'), { type: 'doughnut', data: { datasets: [{ data: [res.freq, 100 - res.freq], backgroundColor: [res.freq >= 75 ? '#10b981' : '#ef4444', 'rgba(0,0,0,0.05)'], borderWidth: 0, circumference: 180, rotation: 270 }] }, options: { cutout: '85%', maintainAspectRatio: false, plugins: { legend: { display: false } } } });
-                if(charts.miniStatus) charts.miniStatus.destroy();
-                charts.miniStatus = new Chart(getEl('mini-chart-status'), { type: 'bar', data: { labels: ['Progresso'], datasets: [{ label: 'Min', data: [cls.settings.mediaPass], backgroundColor: 'rgba(0,0,0,0.1)', borderRadius: 20, barThickness: 16 }, { label: 'Nota', data: [res.finalAvg], backgroundColor: res.finalAvg >= cls.settings.mediaPass ? '#10b981' : '#ef4444', borderRadius: 20, barThickness: 16 }] }, options: { indexAxis: 'y', maintainAspectRatio: false, scales: { x: { display: false, max: 10 }, y: { display: false } }, plugins: { legend: { display: false } } } });
-            }, 300);
-        };
-
-        window.handleBackupData = () => {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state));
-            const downloadAnchorNode = document.createElement('a');
-            downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", `Elite_Backup_${new Date().toISOString().split('T')[0]}.json`);
-            document.body.appendChild(downloadAnchorNode); downloadAnchorNode.click(); downloadAnchorNode.remove();
-            window.showToast("Backup Realizado");
-        };
-
-        window.handleLogout = () => customConfirm("Sair", "Encerrar sessão?", "fa-power-off", (res) => { if(res){ localStorage.setItem('diario_v28_auth', 'false'); checkAuthAndRoute(); } });
-        
-        window.toggleCompactMode = () => { 
-            state.config.compact = !state.config.compact; 
-            document.body.classList.toggle('compact-mode', !!state.config.compact); 
-            getEl('compact-icon').className = state.config.compact ? 'fas fa-expand text-xs' : 'fas fa-compress text-xs';
-            window.showToast(state.config.compact ? "Modo Compacto Ativado" : "Modo Amplo Ativado");
-            setTimeout(updateUI, 50);
-        };
-
-        getEl('theme-toggle').onclick = () => { const isDark = document.documentElement.classList.toggle('dark'); state.config.theme = isDark ? 'dark' : 'light'; getEl('theme-icon').className = isDark ? 'fas fa-sun text-xs' : 'fas fa-moon text-xs'; updateUI(); };
-        getEl('btn-export-pdf').onclick = () => { const el = getEl('boletim-view'); window.showToast("Gerando PDF..."); html2pdf().from(el).set({ margin: 10, filename: 'Relatorio_Elite_v28.pdf', html2canvas: { scale: 2 }, jsPDF: { format: 'a4', orientation: 'portrait' } }).save(); };
-        window.onload = () => { renderClassList(); startEliteEngine(); };
+        window.onload = () => App.init();
     </script>
 </body>
 </html>
