@@ -46,7 +46,7 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
             transition: all 0.3s ease;
             -webkit-tap-highlight-color: transparent;
-            font-size: 0.72rem;
+            font-size: 0.75rem;
         }
 
         .text-sub { color: var(--sub); }
@@ -63,7 +63,7 @@
         .nav-tab {
             padding: 8px 14px;
             font-weight: 800;
-            font-size: 0.58rem;
+            font-size: 0.6rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             color: var(--sub);
@@ -73,6 +73,7 @@
             display: flex;
             align-items: center;
             gap: 6px;
+            white-space: nowrap;
         }
         .nav-tab.active {
             color: var(--accent);
@@ -81,7 +82,7 @@
         }
 
         .status-btn {
-            width: 24px; height: 24px; border-radius: 6px; font-weight: 900; font-size: 0.6rem;
+            width: 28px; height: 28px; border-radius: 8px; font-weight: 900; font-size: 0.7rem;
             transition: all 0.2s; border: 1.5px solid var(--border);
             display: flex; align-items: center; justify-content: center;
             background: transparent;
@@ -90,9 +91,18 @@
         .status-btn.active-F { background: #dc2626 !important; color: white !important; border-color: transparent !important; }
         .status-btn.active-J { background: #d97706 !important; color: white !important; border-color: transparent !important; }
 
-        #matrix-container table { border-collapse: collapse; width: 100%; font-size: 0.55rem; }
-        #matrix-container th, #matrix-container td { border: 1px solid var(--border); text-align: center; min-width: 18px; height: 22px; }
-        #matrix-container td.sticky-col, #matrix-container th.sticky-col { position: sticky; left: 0; background: var(--card); z-index: 10; min-width: 80px; text-align: left; padding-left: 5px; border-right: 2px solid var(--border); }
+        #matrix-container table { border-collapse: collapse; width: 100%; font-size: 0.6rem; }
+        #matrix-container th, #matrix-container td { border: 1px solid var(--border); text-align: center; min-width: 24px; height: 28px; }
+        #matrix-container td.sticky-col, #matrix-container th.sticky-col { 
+            position: sticky; 
+            left: 0; 
+            background: var(--card); 
+            z-index: 10; 
+            min-width: 90px; 
+            text-align: left; 
+            padding-left: 8px; 
+            border-right: 2px solid var(--border); 
+        }
 
         .modal-backdrop { 
             position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
@@ -116,10 +126,12 @@
         #selection-toolbar {
             transform: translate(-50%, 150%);
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+            width: 90%;
+            max-width: 400px;
         }
         #selection-toolbar.visible { transform: translate(-50%, 0); display: flex !important; }
 
-        .custom-scrollbar::-webkit-scrollbar { width: 3px; height: 3px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #ffab07; border-radius: 10px; }
 
         .animate-in { animation: fadeIn 0.2s ease-out forwards; }
@@ -127,6 +139,11 @@
         
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        @media (max-width: 380px) {
+            .nav-tab span { display: none; }
+            .nav-tab i { width: 1.2rem; height: 1.2rem; }
+        }
     </style>
 </head>
 <body class="overflow-x-hidden select-none">
@@ -148,7 +165,6 @@
 
     <!-- MAIN INTERFACE -->
     <div id="main-app" class="hidden opacity-0 transition-opacity duration-500">
-        <!-- Navegação Superior -->
         <nav class="sticky top-0 z-[110] glass-card border-x-0 border-t-0 bg-opacity-95 backdrop-blur-md h-12">
             <div class="max-w-6xl mx-auto flex justify-between items-center px-4 h-full">
                 <div class="flex h-full overflow-x-auto no-scrollbar">
@@ -166,16 +182,16 @@
                     </div>
                     <div id="tab-convert" onclick="App.switchTab('convert')" class="nav-tab">
                         <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-                        <span>Conversor Master</span>
+                        <span>Conversor</span>
                     </div>
                 </div>
                 
                 <div class="flex items-center gap-2">
-                    <div class="hidden md:flex flex-col text-right mr-2 border-r border-border pr-3">
-                        <span id="liveClock" class="text-xs font-black text-brand leading-none">00:00:00</span>
-                        <span id="liveDate" class="text-[8px] font-bold text-sub uppercase">--/--/--</span>
+                    <div class="hidden sm:flex flex-col text-right mr-2 border-r border-border pr-3">
+                        <span id="liveClock" class="text-[10px] font-black text-brand leading-none">00:00:00</span>
+                        <span id="liveDate" class="text-[7px] font-bold text-sub uppercase">--/--/--</span>
                     </div>
-                    <select id="class-selector" onchange="App.setActiveClass(this.value)" class="bg-brand text-base-dark text-[9px] font-black uppercase rounded-lg px-2 py-1 outline-none shadow-sm cursor-pointer"></select>
+                    <select id="class-selector" onchange="App.setActiveClass(this.value)" class="bg-brand text-base-dark text-[8px] font-black uppercase rounded-lg px-2 py-1 outline-none shadow-sm cursor-pointer max-w-[80px] sm:max-w-none truncate"></select>
                     <button onclick="App.toggleTheme()" class="p-1.5 glass-card rounded-lg hover:border-brand">
                         <i id="themeIcon" data-lucide="moon" class="w-3.5 h-3.5 text-brand"></i>
                     </button>
@@ -188,52 +204,52 @@
 
         <main class="max-w-6xl mx-auto px-4 py-4 mb-24">
             
-            <!-- SECTION 1: CHAMADA -->
             <section id="view-diary" class="space-y-4 animate-in">
-                <div class="grid grid-cols-4 gap-2">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     <div class="glass-card p-3 rounded-xl border-l-2 border-brand">
-                        <span class="text-[8px] font-black text-sub uppercase block">Total</span>
-                        <h3 class="text-lg font-black" id="dash-total">0</h3>
+                        <span class="text-[7px] font-black text-sub uppercase block">Total</span>
+                        <h3 class="text-base font-black" id="dash-total">0</h3>
                     </div>
                     <div class="glass-card p-3 rounded-xl border-l-2 border-accent-green">
-                        <span class="text-[8px] font-black text-accent-green uppercase block">Presentes</span>
-                        <h3 class="text-lg font-black" id="dash-pres">0</h3>
+                        <span class="text-[7px] font-black text-accent-green uppercase block">Presentes</span>
+                        <h3 class="text-base font-black" id="dash-pres">0</h3>
                     </div>
                     <div class="glass-card p-3 rounded-xl border-l-2 border-accent-danger">
-                        <span class="text-[8px] font-black text-accent-danger uppercase block">Faltas</span>
-                        <h3 class="text-lg font-black" id="dash-abs">0</h3>
+                        <span class="text-[7px] font-black text-accent-danger uppercase block">Faltas</span>
+                        <h3 class="text-base font-black" id="dash-abs">0</h3>
                     </div>
                     <div class="glass-card p-3 rounded-xl border-l-2 border-accent-blue">
-                        <span class="text-[8px] font-black text-accent-blue uppercase block">Freq.</span>
-                        <h3 class="text-lg font-black" id="dash-freq">0%</h3>
+                        <span class="text-[7px] font-black text-accent-blue uppercase block">Freq.</span>
+                        <h3 class="text-base font-black" id="dash-freq">0%</h3>
                     </div>
                 </div>
 
-                <div class="flex flex-col sm:flex-row gap-2 justify-between items-center bg-black/10 p-2 rounded-2xl border border-white/5">
-                    <div class="flex items-center gap-2 overflow-x-auto no-scrollbar w-full sm:w-auto">
-                        <input type="date" id="current-date" onchange="App.render()" class="bg-base-panel border border-border rounded-lg px-2 py-1 font-black text-brand outline-none text-[10px]">
-                        <button onclick="App.massStatus('P')" class="px-3 py-1.5 bg-accent-green/10 text-accent-green border border-accent-green/20 rounded-lg font-black uppercase text-[8px] hover:bg-accent-green hover:text-white transition-all whitespace-nowrap">Marcar Todos (P)</button>
-                        <button onclick="App.massStatus('')" class="px-3 py-1.5 glass-card border-white/10 rounded-lg font-black uppercase text-[8px] hover:bg-white/10 transition-all whitespace-nowrap">Limpar Chamada</button>
+                <div class="flex flex-col gap-3 bg-black/10 p-3 rounded-2xl border border-white/5">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <input type="date" id="current-date" onchange="App.render()" class="flex-grow sm:flex-none bg-base-panel border border-border rounded-lg px-3 py-2 font-black text-brand outline-none text-[10px]">
+                        <button onclick="App.massStatus('P')" class="flex-grow sm:flex-none px-4 py-2 bg-accent-green/10 text-accent-green border border-accent-green/20 rounded-lg font-black uppercase text-[8px] hover:bg-accent-green hover:text-white transition-all whitespace-nowrap">Presença Total</button>
+                        <button onclick="App.massStatus('')" class="flex-grow sm:flex-none px-4 py-2 glass-card border-white/10 rounded-lg font-black uppercase text-[8px] hover:bg-white/10 transition-all whitespace-nowrap text-sub">Limpar</button>
                     </div>
-                    <div class="flex gap-1.5 w-full sm:w-auto justify-end">
-                        <button onclick="App.enableAddMode()" class="flex-1 sm:flex-none px-4 py-2 bg-brand text-base-dark rounded-xl font-black uppercase text-[9px] shadow-lg flex items-center justify-center gap-1.5 active:scale-95 transition-all">
+                    
+                    <div class="flex gap-2 w-full">
+                        <button onclick="App.enableAddMode()" class="flex-1 py-3 bg-brand text-base-dark rounded-xl font-black uppercase text-[9px] shadow-lg flex items-center justify-center gap-1.5 active:scale-95 transition-all">
                             <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> NOVO ALUNO
                         </button>
-                        <button onclick="App.openModal('modal-turmas')" class="p-2 glass-card rounded-lg text-brand" title="Gerenciar Turmas"><i data-lucide="settings" class="w-4 h-4"></i></button>
-                        <button onclick="App.exportDiaryPDF()" class="p-2 glass-card rounded-lg text-accent-danger" title="Exportar Relatório PDF"><i data-lucide="printer" class="w-4 h-4"></i></button>
-                        <button onclick="App.confirmAction('LIMPAR TURMA', 'Remover todos os alunos e histórico desta turma?', () => App.clearActiveStudents())" class="p-2 glass-card rounded-lg text-accent-danger" title="Limpar Turma"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        <button onclick="App.openModal('modal-turmas')" class="p-3 glass-card rounded-xl text-brand" title="Turmas"><i data-lucide="settings" class="w-4 h-4"></i></button>
+                        <button onclick="App.exportDiaryPDF()" class="p-3 glass-card rounded-xl text-accent-danger" title="PDF"><i data-lucide="printer" class="w-4 h-4"></i></button>
+                        <button onclick="App.confirmAction('LIMPAR TURMA', 'Deseja remover todos os alunos desta unidade?', () => App.clearActiveStudents())" class="p-3 glass-card rounded-xl text-accent-danger" title="Remover"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                     </div>
                 </div>
 
-                <div class="flex flex-col md:flex-row gap-2">
+                <div class="flex flex-col sm:flex-row gap-2">
                     <div class="relative flex-1">
                         <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 opacity-30"></i>
                         <input type="text" id="student-search" oninput="App.render()" placeholder="BUSCAR ESTUDANTE..." class="w-full glass-card py-3 pl-10 pr-4 rounded-xl outline-none focus:ring-2 focus:ring-brand/10 transition-all text-[10px] font-bold uppercase">
                     </div>
-                    <div class="flex gap-1">
-                        <button onclick="App.exportCSV()" class="px-4 py-3 glass-card rounded-xl text-[9px] font-black uppercase hover:bg-accent-blue/10 flex items-center gap-2"><i data-lucide="download" class="w-3.5 h-3.5"></i> EXPORTAR CSV</button>
-                        <label class="px-4 py-3 glass-card rounded-xl text-[9px] font-black uppercase hover:bg-accent-blue/10 flex items-center gap-2 cursor-pointer">
-                            <i data-lucide="upload" class="w-3.5 h-3.5"></i> IMPORTAR CSV
+                    <div class="flex gap-2">
+                        <button onclick="App.exportCSV()" class="flex-1 px-4 py-3 glass-card rounded-xl text-[9px] font-black uppercase hover:bg-accent-blue/10 flex items-center justify-center gap-2"><i data-lucide="download" class="w-3.5 h-3.5"></i> EXPORTAR CSV</button>
+                        <label class="flex-1 px-4 py-3 glass-card rounded-xl text-[9px] font-black uppercase hover:bg-accent-blue/10 flex items-center justify-center gap-2 cursor-pointer">
+                            <i data-lucide="upload" class="w-3.5 h-3.5"></i> IMPORTAR
                             <input type="file" onchange="App.importCSV(this)" class="hidden" accept=".csv">
                         </label>
                     </div>
@@ -241,16 +257,16 @@
 
                 <div class="glass-card rounded-2xl overflow-hidden shadow-2xl">
                     <div class="overflow-x-auto custom-scrollbar">
-                        <table class="w-full text-left border-collapse table-fixed min-w-[800px]">
+                        <table class="w-full text-left border-collapse table-fixed min-w-[650px]">
                             <thead class="bg-black/20 dark:bg-white/5 border-b border-border">
                                 <tr class="text-[9px] font-black uppercase text-sub">
                                     <th class="p-3 w-10 text-center"><input type="checkbox" id="select-all" onchange="App.toggleSelectAll(this.checked)" class="accent-brand"></th>
                                     <th class="p-3 w-12 text-center border-r border-border/30">Nº</th>
-                                    <th class="p-3 w-48">Nome do Estudante</th>
-                                    <th class="p-3 w-28">Data Nasc.</th>
+                                    <th class="p-3 w-44">Nome do Estudante</th>
+                                    <th class="p-3 w-28">Nascimento</th>
                                     <th class="p-3 w-16 text-center">Idade</th>
-                                    <th class="p-3 w-32 text-center">Status</th>
-                                    <th class="p-3 w-16 text-center">Ações</th>
+                                    <th class="p-3 w-36 text-center">Status</th>
+                                    <th class="p-3 w-14 text-center">Ações</th>
                                  </tr>
                             </thead>
                             <tbody id="diary-body" class="divide-y divide-border/20"></tbody>
@@ -258,21 +274,18 @@
                     </div>
                     <div id="diary-empty" class="hidden p-12 text-center">
                         <i data-lucide="users" class="w-12 h-12 mx-auto opacity-10 mb-4 text-brand"></i>
-                        <p class="text-[10px] font-black uppercase tracking-widest opacity-30">Nenhum aluno cadastrado nesta turma</p>
+                        <p class="text-[10px] font-black uppercase tracking-widest opacity-30">Nenhum aluno cadastrado nesta unidade</p>
                     </div>
                 </div>
             </section>
 
-            <!-- SECTION 2: MATRIZ (unchanged) -->
             <section id="view-matrix" class="hidden space-y-4 animate-in">
-                <div class="flex items-center justify-between bg-base-panel p-3 rounded-2xl border border-border">
-                    <div class="flex items-center gap-4">
-                        <h2 class="text-xs font-black uppercase text-brand tracking-tighter">Matriz Mensal de Frequência</h2>
-                        <div class="flex items-center gap-2 bg-black/20 rounded-full px-3 py-1 border border-white/5">
-                            <button onclick="App.changeMatrixMonth(-1)" class="text-brand hover:scale-125 transition-all"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
-                            <span id="matrix-month-label" class="text-[9px] font-black uppercase min-w-[120px] text-center">---</span>
-                            <button onclick="App.changeMatrixMonth(1)" class="text-brand hover:scale-125 transition-all"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
-                        </div>
+                <div class="flex flex-col sm:flex-row items-center justify-between bg-base-panel p-3 rounded-2xl border border-border gap-3">
+                    <h2 class="text-[10px] font-black uppercase text-brand tracking-tighter">Matriz Mensal de Frequência</h2>
+                    <div class="flex items-center gap-2 bg-black/20 rounded-full px-4 py-1.5 border border-white/5">
+                        <button onclick="App.changeMatrixMonth(-1)" class="text-brand p-1 hover:scale-125 transition-all"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
+                        <span id="matrix-month-label" class="text-[9px] font-black uppercase min-w-[140px] text-center">---</span>
+                        <button onclick="App.changeMatrixMonth(1)" class="text-brand p-1 hover:scale-125 transition-all"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
                     </div>
                 </div>
                 <div class="glass-card rounded-2xl overflow-hidden shadow-2xl bg-black/20">
@@ -280,12 +293,11 @@
                 </div>
             </section>
 
-            <!-- SECTION 3: DASHBOARD (unchanged) -->
             <section id="view-stats" class="hidden space-y-4 animate-in">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="glass-card p-8 rounded-[2rem] flex flex-col items-center justify-center text-center">
-                        <h3 class="text-[10px] font-black uppercase text-brand mb-8 tracking-widest">Desempenho Geral da Turma</h3>
-                        <div class="w-full max-w-[200px] aspect-square relative">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div class="glass-card p-6 sm:p-8 rounded-[2rem] flex flex-col items-center justify-center text-center">
+                        <h3 class="text-[10px] font-black uppercase text-brand mb-6 tracking-widest">Desempenho Geral da Unidade</h3>
+                        <div class="w-full max-w-[220px] aspect-square relative">
                             <canvas id="chart-attendance"></canvas>
                         </div>
                         <div id="chart-legend" class="grid grid-cols-3 gap-6 mt-8 w-full text-center"></div>
@@ -293,7 +305,7 @@
                     <div class="glass-card p-4 rounded-[2rem] overflow-hidden flex flex-col">
                         <h3 class="text-[10px] font-black uppercase text-brand mb-4 px-2 tracking-widest">Assiduidade Individual (%)</h3>
                         <div class="flex-1 overflow-y-auto max-h-[350px] custom-scrollbar border border-white/5 rounded-xl bg-black/20">
-                            <table class="w-full text-left text-[9px] border-collapse">
+                            <table class="w-full text-left text-[10px] border-collapse">
                                 <thead class="sticky top-0 bg-base-panel z-10 border-b border-border">
                                     <tr class="font-black text-sub">
                                         <th class="p-3">ALUNO</th>
@@ -309,24 +321,23 @@
                 </div>
             </section>
 
-            <!-- SECTION 4: CONVERSOR (updated with enhanced mapping) -->
             <section id="view-convert" class="hidden space-y-4 animate-in">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <div class="space-y-4">
                         <div id="drop-zone" onclick="document.getElementById('file-input').click()" 
-                             class="group border-2 border-dashed border-white/10 hover:border-brand rounded-3xl p-12 flex flex-col items-center justify-center cursor-pointer transition-all bg-black/5 hover:bg-brand/5">
+                             class="group border-2 border-dashed border-white/10 hover:border-brand rounded-3xl p-10 flex flex-col items-center justify-center cursor-pointer transition-all bg-black/5 hover:bg-brand/5 text-center">
                             <i data-lucide="file-up" class="w-12 h-12 mb-3 opacity-10 group-hover:text-brand transition-all"></i>
-                            <p class="text-[10px] font-black uppercase text-brand">Selecionar Ficheiro</p>
+                            <p class="text-[10px] font-black uppercase text-brand">Selecionar Arquivo de Origem</p>
                             <p class="text-[8px] opacity-40 uppercase font-bold mt-1">PDF • CSV • TXT</p>
                             <input type="file" id="file-input" class="hidden" onchange="Converter.handleFile(this.files[0])">
                         </div>
                         <textarea id="manual-input" oninput="Converter.updateRaw(this.value)"
-                              class="w-full h-56 p-4 text-[10px] font-bold rounded-2xl glass-card bg-transparent focus:ring-2 focus:ring-brand/10 outline-none transition-all custom-scrollbar"
+                              class="w-full h-48 p-4 text-[11px] font-bold rounded-2xl glass-card bg-transparent focus:ring-2 focus:ring-brand/10 outline-none transition-all custom-scrollbar"
                               placeholder="Ou cole os dados brutos aqui..."></textarea>
                     </div>
 
                     <div id="convert-preview" class="hidden flex flex-col gap-4">
-                        <div class="glass-card rounded-[2rem] p-6 flex flex-col h-full bg-black/30 border-t-2 border-t-brand">
+                        <div class="glass-card rounded-[2rem] p-5 flex flex-col h-full bg-black/30 border-t-2 border-t-brand">
                             <div class="flex justify-between items-center mb-4">
                                 <div class="flex items-center gap-2">
                                     <h3 class="text-[10px] font-black uppercase text-brand tracking-widest">Monitor de Extração</h3>
@@ -335,8 +346,8 @@
                                 <button onclick="Converter.reset()" class="text-[9px] font-black text-accent-danger uppercase underline">Limpar</button>
                             </div>
                             
-                            <div class="flex-1 overflow-auto custom-scrollbar rounded-xl border border-white/5 bg-black/20 mb-6 min-h-[200px]">
-                                <table class="w-full text-left border-collapse text-[9px] font-bold">
+                            <div class="flex-1 overflow-auto custom-scrollbar rounded-xl border border-white/5 bg-black/20 mb-6 min-h-[180px]">
+                                <table class="w-full text-left border-collapse text-[10px] font-bold">
                                     <thead class="bg-black/50 sticky top-0">
                                         <tr id="preview-header"></tr>
                                     </thead>
@@ -344,14 +355,12 @@
                                 </table>
                             </div>
                             
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-                                <button onclick="Converter.sync()" class="col-span-2 md:col-span-4 py-4 bg-accent-green text-white rounded-xl text-[10px] font-black uppercase shadow-lg flex items-center justify-center gap-2 mb-2 active:scale-95 transition-all">
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="Converter.sync()" class="col-span-2 py-4 bg-accent-green text-white rounded-xl text-[10px] font-black uppercase shadow-lg flex items-center justify-center gap-2 active:scale-95 transition-all">
                                     <i data-lucide="zap" class="w-4 h-4"></i> Sincronizar com Diário
                                 </button>
-                                <button onclick="Converter.exportExt('csv')" class="py-3 glass-card rounded-xl text-[9px] font-black uppercase hover:bg-brand hover:text-base-dark">CSV</button>
-                                <button onclick="Converter.exportExt('json')" class="py-3 glass-card rounded-xl text-[9px] font-black uppercase hover:bg-brand hover:text-base-dark">JSON</button>
-                                <button onclick="Converter.exportExt('pdf')" class="py-3 glass-card rounded-xl text-[9px] font-black uppercase hover:bg-brand hover:text-base-dark">PDF</button>
-                                <button onclick="Converter.exportExt('txt')" class="py-3 glass-card rounded-xl text-[9px] font-black uppercase hover:bg-brand hover:text-base-dark">TXT</button>
+                                <button onclick="Converter.exportExt('csv')" class="py-3 glass-card rounded-xl text-[9px] font-black uppercase hover:bg-brand hover:text-base-dark transition-all">CSV</button>
+                                <button onclick="Converter.exportExt('pdf')" class="py-3 glass-card rounded-xl text-[9px] font-black uppercase hover:bg-brand hover:text-base-dark transition-all">PDF</button>
                             </div>
                         </div>
                     </div>
@@ -359,48 +368,45 @@
             </section>
         </main>
 
-        <!-- Selection Toolbar (unchanged) -->
-        <div id="selection-toolbar" class="hidden fixed bottom-6 left-1/2 glass-card bg-brand text-base-dark px-8 py-4 rounded-3xl shadow-2xl z-[150] items-center gap-10 border-none min-w-[360px]">
-            <div class="flex flex-col text-center">
-                <span id="sel-count" class="text-2xl font-black leading-none">0</span>
-                <span class="text-[8px] font-black uppercase opacity-70 tracking-widest">Marcados</span>
+        <div id="selection-toolbar" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 glass-card bg-brand text-base-dark px-6 py-4 rounded-[2rem] shadow-2xl z-[150] items-center justify-between border-none">
+            <div class="flex flex-col text-center border-r border-base-dark/10 pr-4">
+                <span id="sel-count" class="text-xl font-black leading-none">0</span>
+                <span class="text-[7px] font-black uppercase opacity-70 tracking-widest">Marcados</span>
             </div>
-            <div class="h-10 w-[1.5px] bg-base-dark/10"></div>
-            <div class="flex gap-3">
-                <button onclick="App.batchAction('P')" class="p-3.5 bg-base-dark/5 hover:bg-base-dark/15 rounded-2xl transition-all" title="Presente"><i data-lucide="user-check" class="w-6 h-6"></i></button>
-                <button onclick="App.batchAction('F')" class="p-3.5 bg-base-dark/5 hover:bg-base-dark/15 rounded-2xl transition-all" title="Falta"><i data-lucide="user-x" class="w-6 h-6"></i></button>
-                <button onclick="App.batchDeleteSelected()" class="p-3.5 bg-accent-danger text-white hover:brightness-110 rounded-2xl transition-all shadow-lg" title="Excluir"><i data-lucide="trash-2" class="w-6 h-6"></i></button>
+            <div class="flex gap-2 mx-2">
+                <button onclick="App.batchAction('P')" class="p-3 bg-base-dark/5 hover:bg-base-dark/15 rounded-xl transition-all" title="Presente"><i data-lucide="user-check" class="w-5 h-5"></i></button>
+                <button onclick="App.batchAction('F')" class="p-3 bg-base-dark/5 hover:bg-base-dark/15 rounded-xl transition-all" title="Falta"><i data-lucide="user-x" class="w-5 h-5"></i></button>
+                <button onclick="App.batchDeleteSelected()" class="p-3 bg-accent-danger text-white rounded-xl transition-all shadow-lg" title="Excluir"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
             </div>
-            <button onclick="App.clearSelection()" class="p-1.5 hover:bg-base-dark/10 rounded-full ml-4"><i data-lucide="x" class="w-6 h-6"></i></button>
+            <button onclick="App.clearSelection()" class="p-2 hover:bg-base-dark/10 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
         </div>
     </div>
 
-    <!-- Modals (unchanged) -->
     <div id="modal-turmas" class="modal-backdrop">
         <div class="glass-card p-6 rounded-[2.5rem] max-w-sm w-full animate-in shadow-3xl">
-            <h3 class="text-sm font-black uppercase text-brand mb-6 text-center tracking-widest">Gestão de Unidades</h3>
+            <h3 class="text-xs font-black uppercase text-brand mb-6 text-center tracking-widest">Gestão de Unidades</h3>
             <div class="flex gap-2 mb-6">
-                <input type="text" id="new-class-name" placeholder="NOME DA NOVA TURMA" class="flex-grow bg-black/20 border border-border rounded-xl px-4 py-3 text-[10px] font-bold outline-none focus:border-brand uppercase">
-                <button onclick="App.addClass()" class="bg-brand text-base-dark px-6 rounded-xl font-black transition-all shadow-lg shadow-brand/20">+</button>
+                <input type="text" id="new-class-name" placeholder="NOME DA NOVA UNIDADE" class="flex-grow bg-black/20 border border-border rounded-xl px-4 py-3 text-[10px] font-bold outline-none focus:border-brand uppercase">
+                <button onclick="App.addClass()" class="bg-brand text-base-dark px-5 rounded-xl font-black shadow-lg shadow-brand/20">+</button>
             </div>
             <div id="class-list" class="space-y-2 overflow-y-auto max-h-[220px] custom-scrollbar pr-2"></div>
             <div class="mt-8 pt-4 border-t border-border flex gap-2">
-                <button onclick="App.openModal('modal-backup')" class="flex-1 py-3 glass-card rounded-xl text-[9px] font-black uppercase hover:bg-brand/5">Segurança & Backup</button>
-                <button onclick="App.closeModal()" class="flex-1 py-3 bg-white/5 rounded-xl text-[9px] font-black uppercase">Fechar</button>
+                <button onclick="App.openModal('modal-backup')" class="flex-1 py-3 glass-card rounded-xl text-[8px] font-black uppercase hover:bg-brand/5">Segurança & Backup</button>
+                <button onclick="App.closeModal()" class="flex-1 py-3 bg-white/5 rounded-xl text-[8px] font-black uppercase">Fechar</button>
             </div>
         </div>
     </div>
 
     <div id="modal-backup" class="modal-backdrop">
         <div class="glass-card p-8 rounded-[2.5rem] max-w-xs w-full text-center shadow-3xl text-fg">
-            <h3 class="text-sm font-black uppercase text-brand mb-4">Exportar Base de Dados</h3>
+            <h3 class="text-xs font-black uppercase text-brand mb-4">Base de Dados do Sistema</h3>
             <div class="flex flex-col gap-3">
-                <button onclick="App.exportBackup()" class="w-full py-4 bg-brand text-base-dark rounded-2xl font-black uppercase text-[10px] shadow-xl hover:scale-105 transition-all">Baixar Backup .JSON</button>
-                <label class="w-full py-4 bg-white/5 rounded-2xl font-black uppercase text-[10px] cursor-pointer hover:bg-white/10 transition-all border border-white/5">
+                <button onclick="App.exportBackup()" class="w-full py-4 bg-brand text-base-dark rounded-2xl font-black uppercase text-[10px] shadow-xl active:scale-95 transition-all">Baixar Backup .JSON</button>
+                <label class="w-full py-4 bg-white/5 rounded-2xl font-black uppercase text-[10px] cursor-pointer border border-white/5 active:bg-white/10">
                     Restaurar do Arquivo
                     <input type="file" onchange="App.importBackup(this)" class="hidden" accept=".json">
                 </label>
-                <button onclick="App.closeModal()" class="mt-4 text-[9px] font-black opacity-30 uppercase hover:opacity-100 transition-opacity">Cancelar Operação</button>
+                <button onclick="App.closeModal()" class="mt-4 text-[9px] font-black opacity-30 uppercase">Cancelar Operação</button>
             </div>
         </div>
     </div>
@@ -424,7 +430,6 @@
         <p id="loading-msg" class="text-[9px] font-black uppercase tracking-[0.3em] text-brand">A Processar Engine Fusion...</p>
     </div>
 
-    <!-- PDF Template Offscreen (still used for diary PDF) -->
     <div id="pdf-offscreen">
         <div id="pdfCaptureArea" style="padding: 40px; background: white !important; color: black !important; min-height: 1120px; font-family: sans-serif;">
             <div style="border-bottom: 5px solid #ffab07; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end;">
@@ -445,7 +450,6 @@
     </div>
 
     <script>
-        // PDF.js Worker initialization
         if (typeof pdfjsLib !== 'undefined') {
             pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         }
@@ -472,26 +476,8 @@
                 
                 if (!this.data.classes || this.data.classes.length === 0) {
                     const id = 'c_' + Date.now();
-                    // Default students with empty fields for birthDate, sexo, etc.
-                    const defaultNames = [
-                        "AFONSO CARDOSO", "ANA SILVA", "BEATRIZ CUNHA", "BRUNO SANTOS", "CAIO MACHADO", 
-                        "CARLA OLIVEIRA", "DAVID SOUZA", "DIOGO ROCHA", "EDUARDA SARAIVA", "ELIANA COSTA", 
-                        "FABIO PEREIRA", "FELIPE NEVES", "GABRIELA RODRIGUES", "GIOVANA FREITAS", "HENRIQUE MELLO", 
-                        "HUGO ALMEIDA", "IGOR RAMOS", "ISABEL NASCIMENTO", "JOÃO LOPES", "JULIANA CORDEIRO", 
-                        "KAREN GOMES", "LEONARDO ARAGÃO", "LUCAS MARTINS", "MARCELO VIANA", "MARIA FERNANDES", 
-                        "NATÁLIA MOURA", "NUNO GONÇALVES", "OLIVIA CARVALHO", "OTÁVIO BORGES", "PATRÍCIA SALES", 
-                        "PEDRO TEIXEIRA", "QUITÉRIA RIBEIRO", "RENATO BRAGA", "RICARDO MOREIRA", "SARA PINTO", 
-                        "TIAGO BARBOSA", "URSULA CAVALCANTE", "VITOR CORREIA", "WAGNER DIAS", "XAVIER CASTRO", 
-                        "YARA VIEIRA", "ZÉLIA MONTEIRO"
-                    ];
-                    const defaultStudents = defaultNames.map(name => ({ 
-                        id: 's_' + Math.random().toString(36).substr(2, 9), 
-                        name: name.toUpperCase(),
-                        birthDate: '',
-                        sexo: '',
-                        idNumber: ''
-                    }));
-                    this.data.classes = [{ id, name: "TURMA PLATINUM (42)", students: defaultStudents, history: {} }];
+                    // Inicialização sem alunos modelo (lista limpa)
+                    this.data.classes = [{ id, name: "UNIDADE 01", students: [], history: {} }];
                     this.data.activeClassId = id;
                     this.save();
                 }
@@ -548,12 +534,11 @@
                 lucide.createIcons();
             },
 
-            // Helper to compute age from birthDate
             calculateAge(birthDateStr) {
-                if (!birthDateStr) return '';
+                if (!birthDateStr) return '-';
                 const today = new Date();
                 const birth = new Date(birthDateStr);
-                if (isNaN(birth.getTime())) return '';
+                if (isNaN(birth.getTime())) return '-';
                 let age = today.getFullYear() - birth.getFullYear();
                 const m = today.getMonth() - birth.getMonth();
                 if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
@@ -598,13 +583,13 @@
                     const tr = document.createElement('tr');
                     tr.className = `transition-all border-b border-border/20 ${isSel ? 'bg-brand/5 border-l-4 border-l-brand' : 'hover:bg-white/[0.02]'}`;
                     tr.innerHTML = `
-                        <td class="p-2 text-center"><input type="checkbox" ${isSel ? 'checked' : ''} onchange="App.toggleSel('${s.id}')" class="accent-brand w-4 h-4">
-                        <td class="p-2 text-center font-mono opacity-30 text-[10px] border-r border-border/30">${(idx+1).toString().padStart(2, '0')}
-                        <td class="p-2"><input type="text" value="${s.name.replace(/'/g, "\\'")}" onblur="App.renameStudent('${s.id}', this.value)" class="bg-transparent w-full font-bold uppercase outline-none focus:text-brand truncate border-none text-[11px]">
-                        <td class="p-2"><input type="text" value="${s.birthDate || ''}" placeholder="DD/MM/AAAA" onblur="App.updateStudentField('${s.id}', 'birthDate', this.value)" class="bg-transparent w-full text-[9px] font-mono outline-none focus:text-brand border-none">
-                        <td class="p-2 text-center font-mono text-[9px]">${age}
-                        <td class="p-2 text-center"><div class="flex items-center justify-center gap-1.5">${['P','F','J'].map(st => `<button onclick="App.markStatus('${s.id}', '${st}')" class="status-btn ${status === st ? 'active-'+st : 'text-sub/40'}">${st}</button>`).join('')}</div>
-                        <td class="p-2 text-center"><button onclick="App.deleteStudent('${s.id}')" class="text-accent-danger opacity-20 hover:opacity-100"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        <td class="p-2 text-center"><input type="checkbox" ${isSel ? 'checked' : ''} onchange="App.toggleSel('${s.id}')" class="accent-brand w-5 h-5"></td>
+                        <td class="p-2 text-center font-mono opacity-30 text-[10px] border-r border-border/30">${(idx+1).toString().padStart(2, '0')}</td>
+                        <td class="p-2"><input type="text" value="${s.name.replace(/'/g, "\\'")}" onblur="App.renameStudent('${s.id}', this.value)" class="bg-transparent w-full font-bold uppercase outline-none focus:text-brand truncate border-none text-[11px]"></td>
+                        <td class="p-2"><input type="date" value="${s.birthDate || ''}" onblur="App.updateStudentField('${s.id}', 'birthDate', this.value)" class="bg-transparent w-full text-[9px] font-mono outline-none focus:text-brand border-none"></td>
+                        <td class="p-2 text-center font-mono text-[10px]">${age}</td>
+                        <td class="p-2 text-center"><div class="flex items-center justify-center gap-1.5">${['P','F','J'].map(st => `<button onclick="App.markStatus('${s.id}', '${st}')" class="status-btn ${status === st ? 'active-'+st : 'text-sub/40'}">${st}</button>`).join('')}</div></td>
+                        <td class="p-2 text-center"><button onclick="App.deleteStudent('${s.id}')" class="text-accent-danger opacity-20 hover:opacity-100 p-2"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td>
                     `;
                     container.appendChild(tr);
                 });
@@ -620,7 +605,7 @@
                 if (student) {
                     student[field] = value;
                     this.save();
-                    this.render(); // refresh to update age display
+                    this.render();
                 }
             },
 
@@ -673,7 +658,7 @@
             deleteStudent(id) {
                 const cls = this.getActiveClass();
                 const s = cls.students.find(x => x.id === id);
-                this.confirm("Excluir Estudante?", `Remover permanentemente ${s.name} do sistema?`, () => {
+                this.confirm("Excluir Estudante?", `Remover permanentemente ${s.name}?`, () => {
                     cls.students = cls.students.filter(x => x.id !== id);
                     this.save(); this.render();
                 });
@@ -687,15 +672,15 @@
                 document.getElementById('matrix-month-label').textContent = new Date(year, month).toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' }).toUpperCase();
                 
                 let h = `<table class="bg-card"><thead><th class="sticky-col text-brand font-black uppercase text-[8px]">ALUNO</th>`;
-                for (let d = 1; d <= days; d++) h += `<th class="p-1 border-border/30 bg-black/10 text-fg">${d}</th>`;
+                for (let d = 1; d <= days; d++) h += `<th class="p-1 border-border/30 bg-black/10 text-fg text-[8px]">${d}</th>`;
                 h += `</thead><tbody>`;
                 [...cls.students].sort((a,b) => a.name.localeCompare(b.name)).forEach(s => {
-                    h += `<tr><td class="sticky-col font-black uppercase truncate border-r border-border/50 text-[9px] text-fg">${s.name}`;
+                    h += `<tr><td class="sticky-col font-black uppercase truncate border-r border-border/50 text-[10px] text-fg">${s.name}</td>`;
                     for (let d = 1; d <= days; d++) {
                         const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                         const st = cls.history[ds]?.[s.id] || '';
                         let color = st === 'P' ? 'text-accent-green' : (st === 'F' ? 'text-accent-danger' : (st === 'J' ? 'text-accent-amber' : 'text-sub/30'));
-                        h += `<td class="${color} font-black text-[9px] border-border/10">${st || '-'}`;
+                        h += `<td class="${color} font-black text-[10px] border-border/10">${st || '-'}</td>`;
                     }
                     h += `</tr>`;
                 });
@@ -728,7 +713,7 @@
                 }).sort((a,b) => a.name.localeCompare(b.name));
 
                 reports.forEach(r => { 
-                    body.innerHTML += `<tr><td class="p-3 font-bold uppercase truncate max-w-[120px] text-fg">${r.name}<td class="p-3 text-center font-bold text-accent-green">${r.P}<td class="p-3 text-center font-bold text-accent-danger">${r.F}<td class="p-3 text-center"><span class="px-2 py-0.5 rounded-full bg-brand/10 text-brand font-black">${r.freq}%</span></tr>`; 
+                    body.innerHTML += `<tr><td class="p-3 font-bold uppercase truncate max-w-[140px] text-fg">${r.name}</td><td class="p-3 text-center font-bold text-accent-green">${r.P}</td><td class="p-3 text-center font-bold text-accent-danger">${r.F}</td><td class="p-3 text-center"><span class="px-2 py-0.5 rounded-full bg-brand/10 text-brand font-black">${r.freq}%</span></td></tr>`; 
                 });
                 
                 const ctx = document.getElementById('chart-attendance').getContext('2d');
@@ -762,8 +747,7 @@
                             <th style="padding:8px; border:1px solid #ddd; font-size:9px; text-align:left;">NOME</th>
                             <th style="padding:8px; border:1px solid #ddd; font-size:9px; text-align:left;">DATA NASC.</th>
                             <th style="padding:8px; border:1px solid #ddd; font-size:9px; text-align:center;">IDADE</th>
-                            <th style="padding:8px; border:1px solid #ddd; font-size:9px; text-align:center;">STATUS</th>
-                           `;
+                            <th style="padding:8px; border:1px solid #ddd; font-size:9px; text-align:center;">STATUS</th></tr>`;
                     
                     [...cls.students].sort((a,b) => a.name.localeCompare(b.name)).forEach((s, i) => {
                         const st = (cls.history[date] || {})[s.id] || '-';
@@ -771,23 +755,22 @@
                         const bgColor = (i % 2 === 0) ? '#ffffff' : '#f9f9f9';
                         const age = this.calculateAge(s.birthDate);
                         h += `<tr style="background:${bgColor} !important;">
-                                <td style="padding:6px; border:1px solid #ddd; font-size:9px; text-align:center; color: black !important;">${(i+1).toString().padStart(2,'0')}
-                                <td style="padding:6px; border:1px solid #ddd; font-size:9px; font-weight:700; color: black !important;">${s.name}
-                                <td style="padding:6px; border:1px solid #ddd; font-size:9px; color: black !important;">${s.birthDate || '-'}
-                                <td style="padding:6px; border:1px solid #ddd; font-size:9px; text-align:center; color: black !important;">${age}
-                                <td style="padding:6px; border:1px solid #ddd; font-size:9px; text-align:center; font-weight:900; color:${color} !important;">${st || '-'}
-                               `;
+                                <td style="padding:6px; border:1px solid #ddd; font-size:9px; text-align:center; color: black !important;">${(i+1).toString().padStart(2,'0')}</td>
+                                <td style="padding:6px; border:1px solid #ddd; font-size:9px; font-weight:700; color: black !important;">${s.name}</td>
+                                <td style="padding:6px; border:1px solid #ddd; font-size:9px; color: black !important;">${s.birthDate || '-'}</td>
+                                <td style="padding:6px; border:1px solid #ddd; font-size:9px; text-align:center; color: black !important;">${age}</td>
+                                <td style="padding:6px; border:1px solid #ddd; font-size:9px; text-align:center; font-weight:900; color:${color} !important;">${st || '-'}</td></tr>`;
                     });
                     h += `</table>`;
                     
                     document.getElementById('pdf-table-target').innerHTML = h;
-                    await new Promise(resolve => setTimeout(resolve, 100));
+                    await new Promise(resolve => setTimeout(resolve, 150));
                     
                     const opt = { 
                         margin: 0.5, 
-                        filename: `Diario_${cls.name}_${date}.pdf`, 
+                        filename: `SGS_${cls.name}_${date}.pdf`, 
                         image: { type: 'jpeg', quality: 1 }, 
-                        html2canvas: { scale: 3, useCORS: true, logging: false, backgroundColor: '#ffffff' }, 
+                        html2canvas: { scale: 3, useCORS: true, backgroundColor: '#ffffff' }, 
                         jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } 
                     };
                     await html2pdf().set(opt).from(document.getElementById('pdfCaptureArea')).save();
@@ -815,20 +798,17 @@
                     const headers = lines[0].split(sep).map(h => h.toLowerCase().replace(/["']/g, '').trim());
                     const cls = this.getActiveClass();
                     lines.slice(1).forEach(l => {
-                        if (!l.trim()) return;
                         const cols = l.split(sep);
                         const studentData = {};
-                        headers.forEach((h, idx) => {
-                            if (idx < cols.length) studentData[h] = cols[idx].replace(/["']/g, '').trim();
-                        });
+                        headers.forEach((h, idx) => { if (idx < cols.length) studentData[h] = cols[idx].replace(/["']/g, '').trim(); });
                         const name = (studentData.nome || studentData.name || '').toUpperCase();
                         if (name && !cls.students.find(x => x.name === name)) {
                             cls.students.push({
                                 id: 's_' + Date.now() + Math.random(),
                                 name: name,
-                                birthDate: studentData['data nascimento'] || studentData['data_nasc'] || studentData['datanasc'] || '',
+                                birthDate: studentData['data nascimento'] || studentData['data_nasc'] || '',
                                 sexo: studentData.sexo || '',
-                                idNumber: studentData.id || studentData.nº || ''
+                                idNumber: ''
                             });
                         }
                     });
@@ -853,7 +833,7 @@
                 list.innerHTML = this.data.classes.map(c => `
                     <div class="flex items-center justify-between p-3 glass-card rounded-xl">
                         <span class="text-[10px] font-black uppercase text-fg truncate">${c.name}</span>
-                        <button onclick="App.deleteClass('${c.id}')" class="text-accent-danger p-1 hover:bg-accent-danger/10 rounded-lg">
+                        <button onclick="App.deleteClass('${c.id}')" class="text-accent-danger p-2 hover:bg-accent-danger/10 rounded-lg">
                             <i data-lucide="trash-2" class="w-4 h-4"></i>
                         </button>
                     </div>
@@ -863,14 +843,14 @@
 
             deleteClass(id) { 
                 if (this.data.classes.length === 1) return; 
-                this.confirm("Excluir Unidade?", "Todos os dados históricos desta turma serão perdidos permanentemente.", () => { 
+                this.confirm("Excluir Unidade?", "Todos os dados desta unidade serão perdidos permanentemente.", () => { 
                     this.data.classes = this.data.classes.filter(c => c.id !== id); 
                     if (this.data.activeClassId === id) this.data.activeClassId = this.data.classes[0].id; 
                     this.save(); this.render(); this.renderClassList(); 
                 }); 
             },
 
-            exportBackup() { saveAs(new Blob([JSON.stringify(this.data)], { type: 'application/json' }), `Backup_SGS_MASTER_${Date.now()}.json`); },
+            exportBackup() { saveAs(new Blob([JSON.stringify(this.data)], { type: 'application/json' }), `Backup_SGS_MASTER.json`); },
             importBackup(input) { 
                 const file = input.files[0]; 
                 if (file) { 
@@ -879,7 +859,7 @@
                         try { 
                             const d = JSON.parse(e.target.result); 
                             if(d.classes) { this.data = d; this.save(); location.reload(); } 
-                        } catch(err) { alert("Backup inválido."); } 
+                        } catch(err) { alert("Arquivo de backup inválido."); } 
                     }; 
                     r.readAsText(file); 
                 } 
@@ -950,7 +930,7 @@
             },
 
             batchDeleteSelected() { 
-                this.confirm("Remover Marcados?", `Eliminar ${this.selectedUids.size} alunos selecionados da turma atual?`, () => { 
+                this.confirm("Remover Marcados?", `Deseja eliminar os ${this.selectedUids.size} alunos selecionados?`, () => { 
                     const cls = this.getActiveClass(); 
                     cls.students = cls.students.filter(s => !this.selectedUids.has(s.id)); 
                     this.save(); this.clearSelection(); 
@@ -964,64 +944,27 @@
                 this.save(); this.render(); 
             },
 
-            // PDF do Conversor usando jsPDF + autoTable
             async exportGenericPDF(data) {
-                if (!data || data.length === 0) {
-                    alert("Não há dados para exportar.");
-                    return;
-                }
-
-                setLoading(true, "Gerando PDF com AutoTable...");
-
+                if (!data || data.length === 0) return;
+                setLoading(true, "Gerando PDF...");
                 try {
                     const { jsPDF } = window.jspdf;
-                    const doc = new jsPDF({
-                        orientation: 'landscape',
-                        unit: 'mm',
-                        format: 'a4'
-                    });
-
-                    // Cabeçalhos genéricos
+                    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
                     const headers = data[0].map((_, idx) => `Coluna ${idx + 1}`);
                     const body = data.map(row => row.map(cell => cell || ""));
-
-                    const options = {
+                    doc.autoTable({
                         head: [headers],
                         body: body,
                         theme: 'grid',
-                        styles: {
-                            fontSize: 8,
-                            cellPadding: 2,
-                            valign: 'middle',
-                            halign: 'left',
-                            overflow: 'linebreak'
-                        },
-                        headStyles: {
-                            fillColor: [255, 171, 7],
-                            textColor: 0,
-                            fontStyle: 'bold',
-                            halign: 'center'
-                        },
-                        margin: { top: 20, left: 10, right: 10, bottom: 20 },
-                        didDrawPage: function (data) {
-                            doc.setFontSize(16);
-                            doc.setTextColor(255, 171, 7);
-                            doc.text("DADOS EXTRAÍDOS", data.settings.margin.left, 15);
-                            doc.setFontSize(9);
-                            doc.setTextColor(100);
-                            doc.text(`Data: ${new Date().toLocaleDateString('pt-PT')}`, data.settings.margin.left, 22);
-                            doc.text(`CONVERSOR MASTER`, data.settings.margin.left, 29);
+                        styles: { fontSize: 8 },
+                        headStyles: { fillColor: [255, 171, 7], textColor: 0 },
+                        didDrawPage: (d) => {
+                            doc.setFontSize(14); doc.setTextColor(255, 171, 7);
+                            doc.text("DADOS EXTRAÍDOS", d.settings.margin.left, 15);
                         }
-                    };
-
-                    doc.autoTable(options);
-                    doc.save(`Extracao_${Date.now()}.pdf`);
-                } catch (error) {
-                    console.error("Erro ao gerar PDF:", error);
-                    alert("Ocorreu um erro ao gerar o PDF. Tente novamente.");
-                } finally {
-                    setLoading(false);
-                }
+                    });
+                    doc.save(`SGS_Extract.pdf`);
+                } finally { setLoading(false); }
             }
         };
 
@@ -1039,19 +982,13 @@
                             let text = "";
                             for(let i=1; i<=pdf.numPages; i++) {
                                 const page = await pdf.getPage(i), content = await page.getTextContent();
-                                const items = content.items.sort((a,b) => (Math.abs(a.transform[5] - b.transform[5]) > 2) ? b.transform[5] - a.transform[5] : a.transform[4] - b.transform[4]);
-                                let lastY = -1;
-                                items.forEach(it => { if(lastY !== -1 && Math.abs(it.transform[5] - lastY) > 2) text += "\n"; text += it.str + " "; lastY = it.transform[5]; });
+                                content.items.forEach(it => { text += it.str + " "; if(it.hasEOL) text += "\n"; });
                             }
                             this.updateRaw(text);
                         } else {
                             this.updateRaw(e.target.result);
                         }
-                    } catch(err) { 
-                        console.error(err); 
-                    } finally { 
-                        setLoading(false); 
-                    }
+                    } catch(err) { console.error(err); } finally { setLoading(false); }
                 };
                 if(file.name.toLowerCase().endsWith('.pdf')) r.readAsArrayBuffer(file); 
                 else r.readAsText(file);
@@ -1075,68 +1012,30 @@
                 for(let i=0; i<max; i++) h.innerHTML += `<th class="p-2 border-b border-white/10 opacity-30 text-center uppercase text-[8px] text-fg">C${i+1}</th>`;
                 this.structured.forEach(row => { 
                     const tr = document.createElement('tr'); 
-                    for(let i=0; i<max; i++) tr.innerHTML += `<td class="p-2 truncate max-w-[120px] text-center border-border/10 text-[9px] text-fg">${row[i] || ""}`; 
+                    for(let i=0; i<max; i++) tr.innerHTML += `<td class="p-2 truncate max-w-[100px] text-center border-border/10 text-[9px] text-fg">${row[i] || ""}</td>`; 
                     b.appendChild(tr); 
                 });
             },
 
-            // Enhanced sync: tries to map columns to student fields (name, birthDate, sexo, id)
             sync() {
                 if(this.structured.length === 0) return;
                 const cls = App.getActiveClass();
                 let added = 0;
-
-                // Try to detect headers (first row)
-                const headers = this.structured[0].map(h => h.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w]/g, ''));
-                const nameIdx = headers.findIndex(h => h.includes('nome') || h === 'name' || h === 'aluno');
-                const birthIdx = headers.findIndex(h => h.includes('data') && (h.includes('nasc') || h.includes('aniversario')));
-                const sexoIdx = headers.findIndex(h => h === 'sexo' || h === 'genero');
-                const idIdx = headers.findIndex(h => h === 'id' || h === 'nº' || h === 'numero');
-
-                // If no clear header detection, treat first row as data
-                const startRow = (nameIdx !== -1 || birthIdx !== -1 || sexoIdx !== -1) ? 1 : 0;
-
-                for (let i = startRow; i < this.structured.length; i++) {
-                    const row = this.structured[i];
-                    let name = '';
-                    let birth = '';
-                    let sexo = '';
-                    let idNum = '';
-
-                    if (nameIdx !== -1 && row[nameIdx]) name = row[nameIdx];
-                    else if (row[0]) name = row[0]; // fallback to first column
-
-                    if (birthIdx !== -1 && row[birthIdx]) birth = row[birthIdx];
-                    if (sexoIdx !== -1 && row[sexoIdx]) sexo = row[sexoIdx];
-                    if (idIdx !== -1 && row[idIdx]) idNum = row[idIdx];
-
-                    name = name.trim().toUpperCase();
+                this.structured.forEach(row => {
+                    const name = (row[0] || '').trim().toUpperCase();
                     if (name.length > 2 && !cls.students.find(x => x.name === name)) {
-                        cls.students.push({ 
-                            id: 's_' + Date.now() + Math.random(), 
-                            name: name,
-                            birthDate: birth,
-                            sexo: sexo,
-                            idNumber: idNum
-                        });
+                        cls.students.push({ id: 's_' + Date.now() + Math.random(), name: name, birthDate: row[1] || '', sexo: row[2] || '', idNumber: '' });
                         added++;
                     }
-                }
+                });
                 App.save(); App.switchTab('diary'); App.render(); this.reset();
-                if (added) alert(`${added} novo(s) aluno(s) adicionado(s) com dados de nascimento e sexo (quando disponíveis).`);
             },
 
-            reset() { 
-                this.structured = []; 
-                document.getElementById('manual-input').value = ""; 
-                document.getElementById('convert-preview').classList.add('hidden'); 
-            },
+            reset() { this.structured = []; document.getElementById('manual-input').value = ""; document.getElementById('convert-preview').classList.add('hidden'); },
 
             exportExt(type) {
-                const fn = `SGS_Extract_${Date.now()}`;
-                if(type === 'csv') saveAs(new Blob(["\uFEFF" + this.structured.map(r => r.map(c => `"${c.replace(/"/g, '""')}"`).join(";")).join("\n")], {type: "text/csv"}), fn+'.csv');
-                else if(type === 'json') saveAs(new Blob([JSON.stringify(this.structured, null, 2)], {type: "application/json"}), fn+'.json');
-                else if(type === 'txt') saveAs(new Blob([this.structured.map(r => r.join(" | ")).join("\n")], {type: "text/plain"}), fn+'.txt');
+                const fn = `Extract_${Date.now()}`;
+                if(type === 'csv') saveAs(new Blob(["\uFEFF" + this.structured.map(r => r.join(";")).join("\n")], {type: "text/csv"}), fn+'.csv');
                 else if(type === 'pdf') App.exportGenericPDF(this.structured);
             }
         };
@@ -1144,10 +1043,7 @@
         function setLoading(v, m) { 
             const ov = document.getElementById('loading-overlay'); 
             if(ov) ov.classList.toggle('hidden', !v); 
-            if(m) { 
-                const msg = document.getElementById('loading-msg'); 
-                if(msg) msg.innerText = m; 
-            } 
+            if(m) { const msg = document.getElementById('loading-msg'); if(msg) msg.innerText = m; } 
         }
 
         window.onload = () => App.init();
